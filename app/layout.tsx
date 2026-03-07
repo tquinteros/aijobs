@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import { Suspense } from "react";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
-import Header, { HeaderSkeleton } from "@/components/header";
+import { Header } from "@/components/header/header";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -35,9 +34,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Suspense fallback={<HeaderSkeleton />}>
-            <Header />
-          </Suspense>
+          <Header />
           {children}
         </ThemeProvider>
       </body>
