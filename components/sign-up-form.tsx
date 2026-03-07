@@ -15,6 +15,9 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { User, Building2 } from "lucide-react";
+
+export type SignUpRole = "candidate" | "company";
 
 export function SignUpForm({
   className,
@@ -23,6 +26,7 @@ export function SignUpForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [role, setRole] = useState<SignUpRole>("candidate");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -45,6 +49,7 @@ export function SignUpForm({
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/protected`,
+          data: { role },
         },
       });
       if (error) throw error;
@@ -66,6 +71,31 @@ export function SignUpForm({
         <CardContent>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label>Join as</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={role === "candidate" ? "default" : "outline"}
+                    className="h-auto py-4 flex flex-col items-center gap-1"
+                    onClick={() => setRole("candidate")}
+                  >
+                    <User className="h-5 w-5" />
+                    <span className="font-medium">Candidate</span>
+                    <span className="text-xs opacity-80">Looking for jobs</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={role === "company" ? "default" : "outline"}
+                    className="h-auto py-4 flex flex-col items-center gap-1"
+                    onClick={() => setRole("company")}
+                  >
+                    <Building2 className="h-5 w-5" />
+                    <span className="font-medium">Company</span>
+                    <span className="text-xs opacity-80">Hiring talent</span>
+                  </Button>
+                </div>
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

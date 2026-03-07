@@ -4,12 +4,19 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { createCandidateProfile } from "@/lib/actions/candidate"
 
-// Separás la lógica con auth en su propio componente
 async function OnboardingForm() {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getClaims()
 
   if (error || !data?.claims) redirect("/auth/login")
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.claims.sub)
+    .single()
+
+  if (profile?.role !== "candidate") redirect("/")
 
   const { data: existing } = await supabase
     .from("candidate_profiles")
