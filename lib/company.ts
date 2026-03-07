@@ -34,16 +34,30 @@ export type JobPosting = {
   updated_at: string
 }
 
+
+export type VectorJobResult = Omit<JobPosting, "updated_at"> & {
+  similarity: number
+}
+
+export type JobWithCompany = {
+  id: string
+  company_profiles: {
+    company_name: string
+    industry: string | null
+    location: string | null
+  } | null
+}
+
 export const COMPANY_PROFILE_QUERY_KEY = ["companyProfile"] as const
 export const JOB_POSTINGS_QUERY_KEY = ["jobPostings"] as const
 
-/** Public job listing (active jobs with company info for /jobs page) */
 export type PublicJobListing = JobPosting & {
   company_profiles: {
     company_name: string
     industry: string | null
     location: string | null
   } | null
+  similarity_score?: number
 }
 
 export const PUBLIC_JOBS_QUERY_KEY = ["publicJobs"] as const

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import pdfParse from "pdf-parse"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import OpenAI from "openai"
+import { generateEmbedding, buildCandidateText } from "@/lib/ai/embeddings"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -175,6 +176,17 @@ export async function uploadAndParseCV(formData: FormData) {
     .eq("id", userId)
 
   if (updateError) throw new Error(`Error guardando perfil: ${updateError.message}`)
+
+  // 8. Generar y guardar embedding del candidato
+  const candidateText = buildCandidateText(parsedCV)
+  const embedding = await generateEmbedding(candidateText)
+
+  const { error: embeddingError } = await supabase
+    .from("candidate_profiles")
+    .update({ embedding })
+    .eq("id", userId)
+
+  if (embeddingError) throw new Error(`Error guardando embedding: ${embeddingError.message}`)
 
   redirect("/dashboard/candidate")
 }

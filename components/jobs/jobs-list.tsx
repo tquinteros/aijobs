@@ -21,6 +21,21 @@ const seniorityLabel: Record<string, string> = {
   lead: "Lead",
 }
 
+function ScoreBadge({ score }: { score: number }) {
+  const config =
+    score >= 70
+      ? { label: "Fuerte match", className: "bg-green-100 text-green-700 border-green-200" }
+      : score >= 50
+        ? { label: "Match moderado", className: "bg-yellow-100 text-yellow-700 border-yellow-200" }
+        : { label: "Match bajo", className: "bg-red-100 text-red-700 border-red-200" }
+
+  return (
+    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${config.className}`}>
+      {score}% · {config.label}
+    </span>
+  )
+}
+
 function JobCard({ job }: { job: PublicJobListing }) {
   const companyName = job.company_profiles?.company_name ?? "Empresa"
   const salaryText =
@@ -56,8 +71,17 @@ function JobCard({ job }: { job: PublicJobListing }) {
               )}
             </div>
           </div>
+
+          {/* Score badge — solo si hay búsqueda vectorial */}
+          {job.similarity_score != null && (
+            <div className="shrink-0">
+              <ScoreBadge score={job.similarity_score} />
+            </div>
+          )}
         </div>
       </CardHeader>
+
+      {/* CardContent queda exactamente igual */}
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground line-clamp-2">{job.description}</p>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">

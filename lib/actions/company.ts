@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import type { CompanyProfile, JobPosting } from "@/lib/company"
+import { buildJobText, generateEmbedding } from "../ai/embeddings"
 
 export async function createCompanyProfile(formData: FormData) {
   const supabase = await createClient()
@@ -68,7 +69,7 @@ export async function createJobPosting(formData: FormData): Promise<void> {
   const salaryMax = formData.get("salary_max") as string
   const yearsRequired = formData.get("years_required") as string
 
-  const { error: insertError } = await supabase.from("job_postings").insert({
+  const jobData = {
     company_id: data.claims.sub,
     title: formData.get("title") as string,
     description: formData.get("description") as string,
@@ -82,9 +83,34 @@ export async function createJobPosting(formData: FormData): Promise<void> {
     required_skills: toSkillsArray(formData.get("required_skills") as string),
     nice_to_have_skills: toSkillsArray(formData.get("nice_to_have_skills") as string),
     status: "active",
-  })
+  }
+
+  // 1. Insertar la oferta
+  const { data: insertedJob, error: insertError } = await supabase
+    .from("job_postings")
+    .insert(jobData)
+    .select()
+    .single()
 
   if (insertError) throw new Error(insertError.message)
+
+  // 2. Generar y guardar embedding de la oferta
+  const jobText = buildJobText({
+    title: jobData.title,
+    description: jobData.description,
+    required_skills: jobData.required_skills,
+    nice_to_have_skills: jobData.nice_to_have_skills,
+    seniority_required: jobData.seniority_required as string,
+    years_required: jobData.years_required as number,
+  })
+  const embedding = await generateEmbedding(jobText)
+
+  const { error: embeddingError } = await supabase
+    .from("job_postings")
+    .update({ embedding })
+    .eq("id", insertedJob.id)
+
+  if (embeddingError) throw new Error(`Error guardando embedding: ${embeddingError.message}`)
 }
 
 export async function updateJobStatus(
