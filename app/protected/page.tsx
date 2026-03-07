@@ -8,7 +8,7 @@ import { Suspense } from "react";
 async function UserDetails() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-
+  console.log(data,"userdata");
   if (error || !data?.claims) {
     redirect("/auth/login");
   }
