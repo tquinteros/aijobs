@@ -8,12 +8,12 @@ import {
   Users,
   Building2,
   Settings,
-  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { LogoutButton } from "@/components/logout-button"
 
 const navItems = [
   { href: "/dashboard/company", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -36,12 +36,12 @@ export function CompanySidebar({ companyName, industry }: SidebarProps) {
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href)
 
-  const initials = companyName
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
+  // const initials = companyName
+  //   .split(" ")
+  //   .slice(0, 2)
+  //   .map((n) => n[0])
+  //   .join("")
+  //   .toUpperCase()
 
   return (
     <aside className="flex flex-col w-64 min-h-screen border-r bg-card px-3 py-5 shrink-0">
@@ -103,15 +103,7 @@ export function CompanySidebar({ companyName, industry }: SidebarProps) {
             {label}
           </Link>
         ))}
-        <form action="/auth/signout" method="post">
-          <button
-            type="submit"
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Cerrar sesión
-          </button>
-        </form>
+        <LogoutButton />
       </div>
     </aside>
   )

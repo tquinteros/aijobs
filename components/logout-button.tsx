@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -11,6 +12,8 @@ export function LogoutButton() {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/auth/login");
+    router.refresh();
+    toast.success("Logout successful");
   };
 
   return <Button onClick={logout}>Cerrar sesión</Button>;
