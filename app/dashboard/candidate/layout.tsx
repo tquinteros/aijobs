@@ -18,19 +18,16 @@ function DashboardFallback() {
   )
 }
 
-export default async function CandidateDashboardLayout({
+export default function CandidateDashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-
-  const profile = await requireCandidate()
-
   return (
     <QueryProvider>
       <TooltipProvider>
         <Suspense fallback={<DashboardFallback />}>
-          <DashboardShell profile={profile}>
+          <DashboardShell>
             {children}
           </DashboardShell>
         </Suspense>

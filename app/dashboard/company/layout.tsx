@@ -24,14 +24,11 @@ export default async function CompanyDashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-
-  const company = await requireCompany()
-
   return (
     <QueryProvider>
       <TooltipProvider>
         <Suspense fallback={<DashboardFallback />}>
-          <CompanyDashboardShell company={company}>
+          <CompanyDashboardShell>
             {children}
           </CompanyDashboardShell>
         </Suspense>

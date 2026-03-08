@@ -1,20 +1,17 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { CandidateSidebar } from "@/components/dashboard/candidate/sidebar"
-
-
-type Profile = {
-  full_name: string
-  title: string
-} 
+import { requireCandidate } from "@/lib/auth/require-candidate"
 
 export async function DashboardShell({
   children,
-  profile,
 }: {
   children: React.ReactNode
-  profile: Profile
 }) {
+
+
+  const profile = await requireCandidate()
+
   return (
     <div className="flex min-h-screen">
       <CandidateSidebar
