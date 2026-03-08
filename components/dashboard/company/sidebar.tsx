@@ -27,10 +27,9 @@ const bottomItems = [
 
 type SidebarProps = {
   companyName: string
-  industry: string | null
 }
 
-export function CompanySidebar({ companyName, industry }: SidebarProps) {
+export function CompanySidebar({ companyName }: SidebarProps) {
   const pathname = usePathname()
 
   const isActive = (href: string, exact?: boolean) =>
@@ -58,7 +57,7 @@ export function CompanySidebar({ companyName, industry }: SidebarProps) {
         </Avatar>
         <div className="min-w-0">
           <p className="text-sm font-medium truncate">{companyName}</p>
-          <p className="text-xs text-muted-foreground truncate">{industry ?? "Sin industria"}</p>
+          {/* <p className="text-xs text-muted-foreground truncate">{industry ?? "Sin industria"}</p> */}
         </div>
       </div>
 

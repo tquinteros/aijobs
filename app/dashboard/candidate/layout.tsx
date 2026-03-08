@@ -1,9 +1,10 @@
 import { Suspense } from "react"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { DashboardShell } from "@/components/dashboard/candidate/dashboard-shell"
 import { Skeleton } from "@/components/ui/skeleton"
 
+import { requireCandidate } from "@/lib/auth/require-candidate"
+import { DashboardShell } from "@/components/dashboard/candidate/dashboard-shell"
 function DashboardFallback() {
   return (
     <div className="flex min-h-screen">
@@ -17,16 +18,21 @@ function DashboardFallback() {
   )
 }
 
-export default function CandidateDashboardLayout({
+export default async function CandidateDashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+
+  const profile = await requireCandidate()
+
   return (
     <QueryProvider>
       <TooltipProvider>
         <Suspense fallback={<DashboardFallback />}>
-          <DashboardShell>{children}</DashboardShell>
+          <DashboardShell profile={profile}>
+            {children}
+          </DashboardShell>
         </Suspense>
       </TooltipProvider>
     </QueryProvider>

@@ -2,23 +2,19 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { CandidateSidebar } from "@/components/dashboard/candidate/sidebar"
 
+
+type Profile = {
+  full_name: string
+  title: string
+} 
+
 export async function DashboardShell({
   children,
+  profile,
 }: {
   children: React.ReactNode
+  profile: Profile
 }) {
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.getClaims()
-  if (error || !data?.claims) redirect("/auth/login")
-
-  const { data: profile } = await supabase
-    .from("candidate_profiles")
-    .select("full_name, title")
-    .eq("id", data.claims.sub)
-    .single()
-
-  if (!profile) redirect("/onboarding/candidate")
-
   return (
     <div className="flex min-h-screen">
       <CandidateSidebar

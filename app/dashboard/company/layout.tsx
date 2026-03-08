@@ -1,8 +1,10 @@
 import { Suspense } from "react"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { CompanyDashboardShell } from "@/components/dashboard/company/dashboard-shell"
 import { Skeleton } from "@/components/ui/skeleton"
+
+import { requireCompany } from "@/lib/auth/require-company"
+import { CompanyDashboardShell } from "@/components/dashboard/company/dashboard-shell"
 
 function DashboardFallback() {
   return (
@@ -13,25 +15,25 @@ function DashboardFallback() {
         <Skeleton className="h-10 w-full rounded-md" />
         <Skeleton className="h-10 w-full rounded-md" />
       </aside>
-      {/* <main className="flex-1 p-6 space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-32 w-full rounded-lg" />
-        <Skeleton className="h-32 w-full rounded-lg" />
-      </main> */}
     </div>
   )
 }
 
-export default function CompanyDashboardLayout({
+export default async function CompanyDashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+
+  const company = await requireCompany()
+
   return (
     <QueryProvider>
       <TooltipProvider>
         <Suspense fallback={<DashboardFallback />}>
-          <CompanyDashboardShell>{children}</CompanyDashboardShell>
+          <CompanyDashboardShell company={company}>
+            {children}
+          </CompanyDashboardShell>
         </Suspense>
       </TooltipProvider>
     </QueryProvider>
