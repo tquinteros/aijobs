@@ -219,7 +219,7 @@ function JobDetailsSkeleton() {
   )
 }
 
-export const JobDetails = () => {
+export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
 
@@ -392,7 +392,7 @@ export const JobDetails = () => {
             </CardContent>
           </Card>
 
-          <ApplicationSection jobId={id} />
+          {canApply && <ApplicationSection jobId={id} />}
         </div>
       </div>
     </div>
