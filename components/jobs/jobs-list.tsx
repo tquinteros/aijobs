@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MapPin, Clock, DollarSign, Building2, AlertCircle } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const locationTypeLabel: Record<string, string> = {
   remote: "Remoto",
@@ -38,6 +39,7 @@ function ScoreBadge({ score }: { score: number }) {
 
 function JobCard({ job }: { job: PublicJobListing }) {
   const companyName = job.company_profiles?.company_name ?? "Empresa"
+  const router = useRouter()
   const salaryText =
     job.salary_min != null && job.salary_max != null
       ? `${job.currency} ${job.salary_min.toLocaleString()} – ${job.salary_max.toLocaleString()}`
@@ -46,7 +48,7 @@ function JobCard({ job }: { job: PublicJobListing }) {
         : null
 
   return (
-    <Card className="transition-colors hover:bg-muted/50">
+    <Card className="transition-colors hover:bg-muted/50 cursor-pointer" onClick={() => router.push(`/jobs/${job.id}`)}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">

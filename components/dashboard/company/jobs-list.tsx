@@ -22,7 +22,9 @@ import {
   Briefcase,
   AlertCircle,
   Inbox,
+  Users,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const statusConfig: Record<JobPosting["status"], { label: string; variant: "default" | "secondary" | "destructive" }> = {
   active: { label: "Activo", variant: "default" },
@@ -45,6 +47,7 @@ const seniorityLabel: Record<string, string> = {
 
 function JobCard({ job }: { job: JobPosting }) {
   const queryClient = useQueryClient()
+  const router = useRouter()
   const { mutate: changeStatus, isPending } = useMutation({
     mutationFn: ({ id, status }: { id: string; status: JobPosting["status"] }) =>
       updateJobStatus(id, status),
@@ -62,7 +65,7 @@ function JobCard({ job }: { job: JobPosting }) {
       : null
 
   return (
-    <Card>
+    <Card className="cursor-pointer" onClick={() => router.push(`/dashboard/company/jobs/${job.id}`)}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -88,7 +91,13 @@ function JobCard({ job }: { job: JobPosting }) {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" disabled={isPending}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 h-8 w-8"
+                disabled={isPending}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -147,14 +156,20 @@ function JobCard({ job }: { job: JobPosting }) {
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground pt-1">
-          Publicado el{" "}
-          {new Date(job.created_at).toLocaleDateString("es-AR", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
-        </p>
+        <div className="flex items-center justify-between pt-1">
+          <p className="text-xs text-muted-foreground">
+            Publicado el{" "}
+            {new Date(job.created_at).toLocaleDateString("es-AR", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+          <span className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground transition-colors">
+            <Users className="h-3.5 w-3.5" />
+            Ver postulaciones
+          </span>
+        </div>
       </CardContent>
     </Card>
   )
@@ -214,7 +229,7 @@ export function JobsList() {
       )}
 
       {!isLoading && jobs && jobs.length > 0 && (
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {jobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}

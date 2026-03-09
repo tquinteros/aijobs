@@ -2,8 +2,14 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import type { CompanyProfile, JobPosting } from "@/lib/company"
+import type {
+  CompanyProfile,
+  JobPosting,
+  JobApplicationForCompany,
+  ApplicationStatus,
+} from "@/lib/company"
 import { buildJobText, generateEmbedding } from "../ai/embeddings"
+import { supabaseAdmin } from "@/lib/supabase/admin"
 
 export async function createCompanyProfile(formData: FormData) {
   const supabase = await createClient()
@@ -126,6 +132,88 @@ export async function updateJobStatus(
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", jobId)
     .eq("company_id", data.claims.sub)
+
+  if (updateError) throw new Error(updateError.message)
+}
+
+export async function getJobWithApplications(jobId: string): Promise<{
+  job: JobPosting
+  applications: JobApplicationForCompany[]
+}> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.getClaims()
+  if (error || !data?.claims) redirect("/auth/login")
+
+  const { data: job, error: jobError } = await supabase
+    .from("job_postings")
+    .select("*")
+    .eq("id", jobId)
+    .eq("company_id", data.claims.sub)
+    .single()
+
+  if (jobError || !job) throw new Error("Job not found or unauthorized")
+
+  const { data: rawApplications, error: appError } = await supabase
+    .from("applications")
+    .select("id, candidate_id, status, cover_letter, applied_at, updated_at")
+    .eq("job_id", jobId)
+    .order("applied_at", { ascending: false })
+
+  if (appError) throw new Error(appError.message)
+
+  const apps = rawApplications ?? []
+
+  // Fetch candidate profiles via admin client to bypass RLS
+  const candidateIds = apps.map((a) => a.candidate_id)
+  const profileMap: Record<string, JobApplicationForCompany["candidate_profiles"]> = {}
+
+  if (candidateIds.length > 0) {
+    const { data: profiles } = await supabaseAdmin
+      .from("candidate_profiles")
+      .select(
+        "id, full_name, title, location, seniority, years_of_experience, skills, languages, cv_url"
+      )
+      .in("id", candidateIds)
+
+    for (const p of profiles ?? []) {
+      profileMap[p.id] = p
+    }
+  }
+
+  const applications: JobApplicationForCompany[] = apps.map((app) => ({
+    ...app,
+    candidate_profiles: profileMap[app.candidate_id] ?? null,
+  }))
+
+  return {
+    job: job as JobPosting,
+    applications,
+  }
+}
+
+export async function updateApplicationStatus(
+  applicationId: string,
+  jobId: string,
+  status: ApplicationStatus
+): Promise<void> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.getClaims()
+  if (error || !data?.claims) redirect("/auth/login")
+
+  const { data: job } = await supabase
+    .from("job_postings")
+    .select("id")
+    .eq("id", jobId)
+    .eq("company_id", data.claims.sub)
+    .single()
+
+  if (!job) throw new Error("Unauthorized")
+
+  const { error: updateError } = await supabase
+    .from("applications")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", applicationId)
+    .eq("job_id", jobId)
 
   if (updateError) throw new Error(updateError.message)
 }
