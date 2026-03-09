@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import {
   ArrowLeft,
   Building2,
@@ -74,29 +74,31 @@ function JobDetailsSkeleton() {
   )
 }
 
-export const JobDetails = ({ jobId }: { jobId: string }) => {
+// export const JobDetails = ({ jobId }: { jobId: string }) => {
+export const JobDetails = () => {
+  const { id } = useParams<{ id: string }>();
   const router = useRouter()
   const queryClient = useQueryClient()
   const [coverLetter, setCoverLetter] = useState("")
 
   const { data: job, isLoading, isError } = useQuery({
-    queryKey: JOB_DETAILS_QUERY_KEY(jobId),
-    queryFn: () => getJobById(jobId),
+    queryKey: JOB_DETAILS_QUERY_KEY(id),
+    queryFn: () => getJobById(id),
   })
 
   const { data: application, isLoading: isLoadingApplication } = useQuery({
-    queryKey: USER_APPLICATION_QUERY_KEY(jobId),
-    queryFn: () => getUserApplication(jobId),
+    queryKey: USER_APPLICATION_QUERY_KEY(id),
+    queryFn: () => getUserApplication(id),
   })
 
   const { mutate: apply, isPending } = useMutation({
-    mutationFn: () => applyToJob({ jobId, coverLetter }),
+    mutationFn: () => applyToJob({ jobId: id, coverLetter }),
     onSuccess: (result) => {
       if (result.success) {
         toast.success("¡Postulación enviada!", {
           description: "Tu postulación fue recibida correctamente.",
         })
-        queryClient.invalidateQueries({ queryKey: USER_APPLICATION_QUERY_KEY(jobId) })
+        queryClient.invalidateQueries({ queryKey: USER_APPLICATION_QUERY_KEY(id) })
       } else {
         toast.error("No se pudo enviar la postulación", {
           description: result.error,
