@@ -20,7 +20,7 @@ const navItems = [
   { href: "/dashboard/candidate", label: "Resumen", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/candidate/cv", label: "Mi CV", icon: FileText },
   { href: "/dashboard/candidate/jobs", label: "Empleos", icon: Briefcase },
-  { href: "/dashboard/candidate/saved", label: "Guardados", icon: BookmarkCheck },
+  // { href: "/dashboard/candidate/saved", label: "Guardados", icon: BookmarkCheck },
   { href: "/dashboard/candidate/messages", label: "Mensajes", icon: MessageCircle },
 ]
 
