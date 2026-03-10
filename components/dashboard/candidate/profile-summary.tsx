@@ -35,14 +35,36 @@ const senioryColor: Record<string, string> = {
 
 function toLanguageList(languages: CandidateProfile["cv_parsed"] extends null ? never : NonNullable<CandidateProfile["cv_parsed"]>["languages"]): string[] {
   if (!languages) return []
-  if (Array.isArray(languages)) return languages
+  if (Array.isArray(languages)) {
+    return languages.map((item) => {
+      if (typeof item === "string") return item
+      if (typeof item === "object" && item !== null && "language" in item) {
+        const o = item as { language: string; level?: string }
+        return o.level ? `${o.language} (${o.level})` : o.language
+      }
+      return String(item)
+    })
+  }
   return Object.entries(languages).map(([lang, level]) => `${lang} (${level})`)
 }
 
 function toEducationList(education: NonNullable<CandidateProfile["cv_parsed"]>["education"]): string[] {
   if (!education) return []
-  if (Array.isArray(education)) return education
-  return [education]
+
+  const formatItem = (item: unknown): string => {
+    if (typeof item === "string") return item
+    if (typeof item === "object" && item !== null) {
+      const values = Object.values(item as Record<string, unknown>).filter(Boolean)
+      return values.map(String).join(" · ")
+    }
+    return String(item)
+  }
+
+  if (Array.isArray(education)) {
+    return education.map(formatItem)
+  }
+
+  return [formatItem(education)]
 }
 
 function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
@@ -184,8 +206,8 @@ export function ProfileSummary() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {languages.map((lang) => (
-                <div key={lang} className="text-sm text-muted-foreground">{lang}</div>
+              {languages.map((lang, i) => (
+                <div key={`lang-${i}-${lang}`} className="text-sm text-muted-foreground">{lang}</div>
               ))}
             </CardContent>
           </Card>
@@ -200,8 +222,8 @@ export function ProfileSummary() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {education.map((ed) => (
-                <div key={ed} className="text-sm text-muted-foreground">{ed}</div>
+              {education.map((ed, i) => (
+                <div key={`edu-${i}-${ed}`} className="text-sm text-muted-foreground">{ed}</div>
               ))}
             </CardContent>
           </Card>

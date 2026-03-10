@@ -48,7 +48,7 @@ export function CandidateSidebar({ fullName, title }: SidebarProps) {
     <aside className="flex flex-col w-64 min-h-screen border-r bg-card px-3 py-5 shrink-0">
       {/* Brand */}
       <div className="px-3 mb-6">
-        <span className="text-lg font-bold tracking-tight">aijobs</span>
+        <Link href="/" className="text-lg font-bold tracking-tight">aijobs</Link>
         <span className="text-muted-foreground text-sm block">Candidato</span>
       </div>
 

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import pdfParse from "pdf-parse"
 import { supabaseAdmin } from "@/lib/supabase/admin"
+import { redis } from "@/lib/redis"
 import OpenAI from "openai"
 import { generateEmbedding, buildCandidateText } from "@/lib/ai/embeddings"
 
@@ -79,6 +80,24 @@ export async function uploadAndParseCV(formData: FormData) {
   const { data, error } = await supabase.auth.getClaims()
   if (error || !data?.claims) redirect("/auth/login")
   const userId = data.claims.sub
+
+  // 1.b Limitar cambios de CV a una vez cada 24hs
+  const { data: existingProfile } = await supabase
+    .from("candidate_profiles")
+    .select("cv_parsed_at")
+    .eq("id", userId)
+    .single()
+
+  if (existingProfile?.cv_parsed_at) {
+    const lastParsed = new Date(existingProfile.cv_parsed_at)
+    const now = new Date()
+    const diffMs = now.getTime() - lastParsed.getTime()
+    const HOURS_24 = 24 * 60 * 60 * 1000
+
+    if (diffMs < HOURS_24) {
+      throw new Error("Solo podés actualizar tu CV una vez cada 24 horas.")
+    }
+  }
 
   // 2. Obtener archivo
   const file = formData.get("cv") as File
@@ -188,5 +207,26 @@ export async function uploadAndParseCV(formData: FormData) {
 
   if (embeddingError) throw new Error(`Error guardando embedding: ${embeddingError.message}`)
 
+  // 9. Invalidar cache de matches personalizados y borrar matches persistidos
+  const cacheKey = `jobs:vector:${userId}`
+  try {
+    await redis.del(cacheKey)
+  } catch (e) {
+    console.error("[candidate] Error borrando cache Redis de matches:", e)
+  }
+
+  try {
+    await supabase
+      .from("candidate_job_matches")
+      .delete()
+      .eq("candidate_id", userId)
+  } catch (e) {
+    console.error("[candidate] Error borrando candidate_job_matches:", e)
+  }
+
   redirect("/dashboard/candidate")
+}
+
+export async function updateCVAndRefreshMatches(formData: FormData) {
+  await uploadAndParseCV(formData)
 }
