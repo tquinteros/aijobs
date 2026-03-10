@@ -8,7 +8,7 @@ import { CompanyDashboardShell } from "@/components/dashboard/company/dashboard-
 
 function DashboardFallback() {
   return (
-    <div className="flex min-h-screen">
+    <div className="lg:flex min-h-screen hidden">
       <aside className="w-64 border-r bg-card p-4 space-y-4 shrink-0">
         <Skeleton className="h-6 w-24" />
         <Skeleton className="h-10 w-full rounded-md" />

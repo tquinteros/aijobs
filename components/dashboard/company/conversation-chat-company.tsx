@@ -1,3 +1,4 @@
+// components/dashboard/company/conversation-chat-company.tsx
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
@@ -8,57 +9,44 @@ import {
   sendCompanyMessage,
   markConversationReadCompany,
 } from "@/lib/actions/message"
-import { CONVERSATIONS_QUERY_KEY, MESSAGES_QUERY_KEY, type Message } from "@/lib/messages"
+import { CONVERSATIONS_QUERY_KEY, MESSAGES_QUERY_KEY, type Message, type ConversationWithDetails } from "@/lib/messages"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
-import { Skeleton } from "@/components/ui/skeleton"
 import { SendHorizonal, AlertCircle } from "lucide-react"
 
 type Props = {
   conversationId: string
+  initialMessages: Message[]
+  initialConvDetails: ConversationWithDetails | null
 }
 
-function ChatSkeleton() {
-  return (
-    <div className="flex flex-col h-full">
-      <div className="border-b px-4 py-3 space-y-1">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-3 w-28" />
-      </div>
-      <div className="flex-1 p-4 space-y-3 overflow-y-auto">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className={cn("flex", i % 2 === 0 ? "justify-start" : "justify-end")}>
-            <Skeleton className="h-9 rounded-xl" style={{ width: `${120 + (i * 30) % 100}px` }} />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-export default function ConversationChatCompany({ conversationId }: Props) {
+export default function ConversationChatCompany({
+  conversationId,
+  initialMessages,
+  initialConvDetails,
+}: Props) {
   const queryClient = useQueryClient()
   const bottomRef = useRef<HTMLDivElement>(null)
   const [text, setText] = useState("")
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState("")
 
-  const { data: conv, isLoading: loadingConv } = useQuery({
+  const { data: conv } = useQuery({
     queryKey: ["conversationDetailsCompany", conversationId],
     queryFn: () => getConversationDetailsForCompany(conversationId),
+    initialData: initialConvDetails ?? undefined,
   })
 
-  const { data: messages, isLoading: loadingMessages } = useQuery({
+  const { data: messages } = useQuery({
     queryKey: MESSAGES_QUERY_KEY(conversationId),
     queryFn: () => getConversationMessagesForCompany(conversationId),
+    initialData: initialMessages,
   })
 
-  // Scroll to bottom when messages load or new ones arrive
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Mark as read when the chat opens
   useEffect(() => {
     if (!conversationId) return
     markConversationReadCompany(conversationId).then(() => {
@@ -66,7 +54,6 @@ export default function ConversationChatCompany({ conversationId }: Props) {
     })
   }, [conversationId, queryClient])
 
-  // Supabase Realtime subscription for new messages
   const handleNewMessage = useCallback(
     (msg: Message) => {
       queryClient.setQueryData<Message[]>(
@@ -77,9 +64,7 @@ export default function ConversationChatCompany({ conversationId }: Props) {
           return [...prev, msg]
         }
       )
-      // Refresh conversation list so unread counters update
       queryClient.invalidateQueries({ queryKey: CONVERSATIONS_QUERY_KEY })
-      // Auto-mark candidate messages as read since company is viewing
       if (msg.sender_role === "candidate") {
         markConversationReadCompany(conversationId)
       }
@@ -103,7 +88,7 @@ export default function ConversationChatCompany({ conversationId }: Props) {
       )
       .subscribe()
 
-  return () => {
+    return () => {
       supabase.removeChannel(channel)
     }
   }, [conversationId, handleNewMessage])
@@ -119,7 +104,6 @@ export default function ConversationChatCompany({ conversationId }: Props) {
     try {
       const msg = await sendCompanyMessage(conversationId, trimmed)
       setText("")
-      // Optimistically add the sent message locally
       queryClient.setQueryData<Message[]>(
         MESSAGES_QUERY_KEY(conversationId),
         (prev) => {
@@ -135,8 +119,6 @@ export default function ConversationChatCompany({ conversationId }: Props) {
       setSending(false)
     }
   }
-
-  if (loadingConv || loadingMessages) return <ChatSkeleton />
 
   const candidateName = conv?.candidate_profiles?.full_name ?? "Candidato/a"
 
@@ -156,13 +138,13 @@ export default function ConversationChatCompany({ conversationId }: Props) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        {messages && messages.length === 0 && (
+        {messages.length === 0 && (
           <p className="text-xs text-center text-muted-foreground py-8">
             No hay mensajes aún. Enviá el primer mensaje para contactar a la persona candidata.
           </p>
         )}
 
-        {messages?.map((msg) => {
+        {messages.map((msg) => {
           const isCompany = msg.sender_role === "company"
           const time = new Date(msg.created_at).toLocaleTimeString("es-AR", {
             hour: "2-digit",

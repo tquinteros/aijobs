@@ -29,9 +29,10 @@ const bottomItems = [
 
 type SidebarProps = {
   companyName: string
+  className?: string
 }
 
-export function CompanySidebar({ companyName }: SidebarProps) {
+export function CompanySidebar({ companyName, className }: SidebarProps) {
   const pathname = usePathname()
 
   const isActive = (href: string, exact?: boolean) =>
@@ -45,7 +46,7 @@ export function CompanySidebar({ companyName }: SidebarProps) {
   //   .toUpperCase()
 
   return (
-    <aside className="flex flex-col w-64 min-h-screen border-r bg-card px-3 py-5 shrink-0">
+    <aside className={cn("flex flex-col w-64 min-h-screen border-r bg-card px-3 py-5 shrink-0", className)}>
       <div className="px-3 mb-6">
         <span className="text-lg font-bold tracking-tight">aijobs</span>
         <span className="text-muted-foreground text-sm block">Empresa</span>
