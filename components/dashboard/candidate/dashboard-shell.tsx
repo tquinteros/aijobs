@@ -13,12 +13,12 @@ export async function DashboardShell({
   const profile = await requireCandidate()
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <CandidateSidebar
         fullName={profile.full_name}
         title={profile.title}
       />
-      <main className="flex-1 overflow-auto bg-background">
+      <main className="flex-1 overflow-y-auto bg-background">
         {children}
       </main>
     </div>

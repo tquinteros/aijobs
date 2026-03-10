@@ -12,10 +12,10 @@ export async function CompanyDashboardShell({
 }) {
   const company = await requireCompany()
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <CompanySidebar companyName={company.company_name} />
 
-      <main className="flex-1 overflow-auto bg-background">
+      <main className="flex-1 overflow-y-auto bg-background">
         {children}
       </main>
     </div>
