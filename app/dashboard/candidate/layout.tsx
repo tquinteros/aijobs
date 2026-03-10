@@ -1,5 +1,4 @@
 import { Suspense } from "react"
-import { QueryProvider } from "@/components/providers/query-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DashboardShell } from "@/components/dashboard/candidate/dashboard-shell"
@@ -23,7 +22,6 @@ export default function CandidateDashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <QueryProvider>
       <TooltipProvider>
         <Suspense fallback={<DashboardFallback />}>
           <DashboardShell>
@@ -31,6 +29,5 @@ export default function CandidateDashboardLayout({
           </DashboardShell>
         </Suspense>
       </TooltipProvider>
-    </QueryProvider>
   )
 }
