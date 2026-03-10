@@ -1,11 +1,10 @@
 import ApplicationsCandidate from '@/components/dashboard/candidate/applications-candidate'
-import CvProfile from '@/components/dashboard/candidate/cv-profile'
-import React from 'react'
-
-export default function CandidateJobsPage() {
+import { getCandidateApplications } from '@/lib/actions/job'
+export default async function CandidateJobsPage() {
+    const initialApplications = await getCandidateApplications()
     return (
         <div className="p-6 max-w-4xl mx-auto">
-            <ApplicationsCandidate />
+            <ApplicationsCandidate initialApplications={initialApplications} />
         </div>
     )
 }

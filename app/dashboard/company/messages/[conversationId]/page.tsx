@@ -1,4 +1,3 @@
-// app/dashboard/company/messages/[conversationId]/page.tsx
 import { getCompanyConversations, getConversationMessagesForCompany, getConversationDetailsForCompany } from "@/lib/actions/message"
 import { MessageCircle } from "lucide-react"
 import MessageListCompany from "@/components/dashboard/company/messages-list-company"
@@ -13,7 +12,6 @@ export default async function ConversationPage({
 }) {
   const { conversationId } = await params
 
-  // Fetch en paralelo — no espera uno para arrancar el otro
   const [initialConversations, initialMessages, initialConvDetails] = await Promise.all([
     getCompanyConversations(),
     getConversationMessagesForCompany(conversationId),

@@ -97,10 +97,11 @@ function SummarySkeleton() {
   )
 }
 
-export function ProfileSummary() {
+export function ProfileSummary({ initialProfile }: { initialProfile: CandidateProfile }) {
   const { data: profile, isLoading, isError } = useQuery({
     queryKey: ["candidateProfile"],
     queryFn: getCandidateProfile,
+    initialData: initialProfile,
   })
 
   if (isLoading) return <SummarySkeleton />

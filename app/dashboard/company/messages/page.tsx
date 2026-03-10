@@ -1,4 +1,3 @@
-// app/dashboard/company/messages/page.tsx
 import { getCompanyConversations } from "@/lib/actions/message"
 import { MessageCircle } from "lucide-react"
 import MessageListCompany from "@/components/dashboard/company/messages-list-company"

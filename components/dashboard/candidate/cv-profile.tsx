@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import type React from "react"
 import { useQuery } from "@tanstack/react-query"
 import { CheckCircle, FileText, Loader2, UploadCloud, XCircle, Info } from "lucide-react"
-import { getCandidateProfile, updateCVAndRefreshMatches } from "@/lib/actions/candidate"
+import { CandidateProfile, getCandidateProfile, updateCVAndRefreshMatches } from "@/lib/actions/candidate"
 
 type Step = "idle" | "uploading" | "extracting" | "analyzing" | "saving" | "done" | "error"
 
@@ -18,10 +18,11 @@ const stepMessages: Record<Step, string> = {
   error: "Ocurrió un error",
 }
 
-export default function CvProfile() {
+export default function CvProfile({ initialProfile }: { initialProfile: CandidateProfile }) {
   const { data: profile } = useQuery({
     queryKey: ["candidateProfile"],
     queryFn: getCandidateProfile,
+    initialData: initialProfile,
   })
 
   const [file, setFile] = useState<File | null>(null)

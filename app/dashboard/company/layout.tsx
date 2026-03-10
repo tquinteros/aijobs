@@ -2,8 +2,6 @@ import { Suspense } from "react"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Skeleton } from "@/components/ui/skeleton"
-
-import { requireCompany } from "@/lib/auth/require-company"
 import { CompanyDashboardShell } from "@/components/dashboard/company/dashboard-shell"
 
 function DashboardFallback() {

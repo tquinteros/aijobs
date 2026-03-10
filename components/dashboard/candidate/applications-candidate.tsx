@@ -61,10 +61,11 @@ function statusVariant(status: CandidateApplicationWithJob["status"]): "default"
   }
 }
 
-export default function ApplicationsCandidate() {
+export default function ApplicationsCandidate({ initialApplications }: { initialApplications: CandidateApplicationWithJob[] }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["candidateApplications"],
     queryFn: getCandidateApplications,
+    initialData: initialApplications,
   })
 
   if (isLoading) return <ApplicationsSkeleton />

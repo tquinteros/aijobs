@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { getCandidateConversations } from "@/lib/actions/message"
-import { CONVERSATIONS_QUERY_KEY } from "@/lib/messages"
+import { CONVERSATIONS_QUERY_KEY, ConversationWithDetails } from "@/lib/messages"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -28,13 +28,14 @@ function ConversationSkeleton() {
   )
 }
 
-export default function MessageListCandidate() {
+export default function MessageListCandidate({ initialConversations }: { initialConversations: ConversationWithDetails[] }) {
   const pathname = usePathname()
   const queryClient = useQueryClient()
   const { data: conversations, isLoading, isError } = useQuery({
     queryKey: CONVERSATIONS_QUERY_KEY,
     queryFn: getCandidateConversations,
     refetchInterval: 30_000,
+    initialData: initialConversations,
   })
 
   // Realtime: subscribe to conversation updates for this candidate (new messages update the row)

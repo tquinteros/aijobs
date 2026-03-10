@@ -1,4 +1,3 @@
-// components/dashboard/company/conversation-chat-company.tsx
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"

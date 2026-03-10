@@ -1,4 +1,3 @@
-// lib/messages.ts
 
 export type Conversation = {
     id: string
@@ -25,7 +24,6 @@ export type Conversation = {
     created_at: string
   }
   
-  // Conversación enriquecida para la lista (solo campos necesarios para UI)
   export type ConversationWithDetails = Conversation & {
     job_postings: { title: string } | null
     candidate_profiles: { full_name: string } | null

@@ -2,9 +2,8 @@ import { Suspense } from "react"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Skeleton } from "@/components/ui/skeleton"
-
-import { requireCandidate } from "@/lib/auth/require-candidate"
 import { DashboardShell } from "@/components/dashboard/candidate/dashboard-shell"
+
 function DashboardFallback() {
   return (
     <div className="flex min-h-screen">
