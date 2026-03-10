@@ -1,13 +1,15 @@
 import ConversationChat from "@/components/dashboard/candidate/conversation-chat"
 import MessageListCandidate from "@/components/dashboard/candidate/messages-list-candidate"
 import { MessageCircle } from "lucide-react"
-
+import { getCandidateConversations } from "@/lib/actions/message"
+import { ConversationWithDetails } from "@/lib/messages"
 export default async function ConversationPage({
   params,
 }: {
   params: Promise<{ conversationId: string }>
 }) {
   const { conversationId } = await params
+  const initialConversations: ConversationWithDetails[] = await getCandidateConversations()
   return (
     <div className="flex h-[calc(100vh-0px)] overflow-hidden border rounded-lg">
       {/* Sidebar: conversation list */}
@@ -19,7 +21,7 @@ export default async function ConversationPage({
           </h2>
         </div>
         <div className="flex-1 overflow-y-auto">
-          <MessageListCandidate />
+          <MessageListCandidate initialConversations={initialConversations} />
         </div>
       </aside>
 
