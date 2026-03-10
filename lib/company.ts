@@ -64,6 +64,7 @@ export const PUBLIC_JOBS_QUERY_KEY = ["publicJobs"] as const
 
 export const JOB_DETAILS_QUERY_KEY = (id: string) => ["jobDetails", id] as const
 export const USER_APPLICATION_QUERY_KEY = (jobId: string) => ["userApplication", jobId] as const
+export const CANDIDATE_APPLICATIONS_QUERY_KEY = ["candidateApplications"] as const
 
 export type ApplicationStatus = "applied" | "reviewed" | "contacted" | "rejected" | "hired"
 
@@ -94,4 +95,23 @@ export type JobApplicationForCompany = {
     languages: string[]
     cv_url: string | null
   } | null
+}
+
+export type CandidateApplicationWithJob = {
+  id: string
+  status: ApplicationStatus
+  cover_letter: string | null
+  applied_at: string
+  updated_at: string
+  job_postings: (JobPosting & {
+    company_profiles: {
+      company_name: string
+      logo_url: string | null
+      website: string | null
+      description: string | null
+      location: string | null
+      industry: string | null
+      size: string | null
+    } | null
+  }) | null
 }

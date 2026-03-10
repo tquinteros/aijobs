@@ -38,6 +38,7 @@ import {
   type ApplicationStatus,
   type JobPosting,
 } from "@/lib/company"
+import { getOrCreateConversation } from "@/lib/actions/message"
 
 const locationTypeLabel: Record<string, string> = {
   remote: "Remoto",
@@ -149,6 +150,7 @@ function ApplicationCard({
   jobId: string
 }) {
   const queryClient = useQueryClient()
+  const router = useRouter()
   const candidate = application.candidate_profiles
   const statusCfg = applicationStatusConfig[application.status]
 
@@ -163,6 +165,19 @@ function ApplicationCard({
     },
     onError: () => {
       toast.error("No se pudo actualizar el estado")
+    },
+  })
+
+  const { mutate: contactCandidate, isPending: isStartingChat } = useMutation({
+    mutationFn: async () => {
+      if (!application.candidate_id) {
+        throw new Error("Candidato inválido")
+      }
+      const conversationId = await getOrCreateConversation(application.candidate_id, jobId)
+      router.push(`/dashboard/company/messages/${conversationId}`)
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "No se pudo iniciar el chat")
     },
   })
 
@@ -279,19 +294,35 @@ function ApplicationCard({
                   year: "numeric",
                 })}
               </p>
-              {candidate?.cv_url && (
+              <div className="flex items-center gap-2">
+                {candidate?.cv_url && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs gap-1.5"
+                    asChild
+                  >
+                    <a href={candidate.cv_url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Ver CV
+                    </a>
+                  </Button>
+                )}
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   className="h-7 text-xs gap-1.5"
-                  asChild
+                  disabled={isStartingChat}
+                  onClick={() => contactCandidate()}
                 >
-                  <a href={candidate.cv_url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Ver CV
-                  </a>
+                  {isStartingChat ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Inbox className="h-3.5 w-3.5" />
+                  )}
+                  Contactar
                 </Button>
-              )}
+              </div>
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ import {
   Users,
   Building2,
   Settings,
+  MessageCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/dashboard/company", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/company/jobs", label: "Job Postings", icon: Briefcase },
   { href: "/dashboard/company/candidates", label: "Candidates", icon: Users },
+  { href: "/dashboard/company/messages", label: "Messages", icon: MessageCircle },
 ]
 
 const bottomItems = [

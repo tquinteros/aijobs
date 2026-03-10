@@ -2,7 +2,13 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { redis } from "@/lib/redis"
-import type { PublicJobListing, VectorJobResult, JobWithCompany, Application } from "@/lib/company"
+import type {
+  PublicJobListing,
+  VectorJobResult,
+  JobWithCompany,
+  Application,
+  CandidateApplicationWithJob,
+} from "@/lib/company"
 
 const JOBS_CACHE_TTL = 60 * 60
 
@@ -184,4 +190,60 @@ export async function applyToJob({
   }
 
   return { success: true }
+}
+
+export async function getCandidateApplications(): Promise<CandidateApplicationWithJob[]> {
+  const supabase = await createClient()
+
+  const { data: authData, error: authError } = await supabase.auth.getClaims()
+  if (authError || !authData?.claims?.sub) {
+    throw new Error("Debés iniciar sesión para ver tus postulaciones.")
+  }
+  const userId = authData.claims.sub as string
+
+  const { data, error } = await supabase
+    .from("applications")
+    .select(`
+      id,
+      status,
+      cover_letter,
+      applied_at,
+      updated_at,
+      job_postings (
+        id,
+        company_id,
+        title,
+        description,
+        location_type,
+        location,
+        salary_min,
+        salary_max,
+        currency,
+        seniority_required,
+        years_required,
+        required_skills,
+        nice_to_have_skills,
+        status,
+        created_at,
+        updated_at,
+        company_profiles (
+          company_name,
+          logo_url,
+          website,
+          description,
+          location,
+          industry,
+          size,
+          updated_at
+        )
+      )
+    `)
+    .eq("candidate_id", userId)
+    .order("applied_at", { ascending: false })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return (data ?? []) as unknown as CandidateApplicationWithJob[]
 }
