@@ -152,7 +152,7 @@ export default function ApplicationsCandidate({ initialApplications }: { initial
               )}
               <div className="pt-2">
                 <Link
-                  href={`/dashboard/candidate/jobs/${job.id}`}
+                  href={`/jobs/${job.id}`}
                   className="text-xs text-primary font-medium hover:underline underline-offset-2"
                 >
                   Ver detalle del empleo

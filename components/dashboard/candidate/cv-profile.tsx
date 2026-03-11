@@ -108,10 +108,14 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
       const formData = new FormData()
       formData.append("cv", file)
 
-      // La server action hace todo el trabajo real (parseo + embeddings + refresh de matches)
       setStep("saving")
       await uploadAndParseCV(formData)
-      toast.success("¡CV analizado correctamente!")
+      toast.success("¡CV analizado correctamente!", {
+        action: {
+          label: "Ir a dashboard",
+          onClick: () => router.push("/dashboard/candidate"),
+        },
+      })
       queryClient.refetchQueries({ queryKey: ["candidateProfile"] })
       setStep("done")
     } catch (error) {
