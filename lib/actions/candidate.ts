@@ -7,6 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin"
 import { redis } from "@/lib/redis"
 import OpenAI from "openai"
 import { generateEmbedding, buildCandidateText } from "@/lib/ai/embeddings"
+import { revalidatePath } from "next/cache"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -223,7 +224,7 @@ export async function uploadAndParseCV(formData: FormData) {
   } catch (e) {
     console.error("[candidate] Error borrando candidate_job_matches:", e)
   }
-
+  revalidatePath("/dashboard/candidate")
   redirect("/dashboard/candidate")
 }
 

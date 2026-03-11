@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react"
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   getConversationMessagesForCompany,
   getConversationDetailsForCompany,
@@ -11,23 +11,28 @@ import {
 import { CONVERSATIONS_QUERY_KEY, MESSAGES_QUERY_KEY, type Message, type ConversationWithDetails } from "@/lib/messages"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
-import { SendHorizonal, AlertCircle } from "lucide-react"
+import { SendHorizonal, AlertCircle, Loader2 } from "lucide-react"
 
 type Props = {
   conversationId: string
   initialMessages: Message[]
+  initialHasMore: boolean
   initialConvDetails: ConversationWithDetails | null
 }
 
 export default function ConversationChatCompany({
   conversationId,
   initialMessages,
+  initialHasMore,
   initialConvDetails,
 }: Props) {
   const queryClient = useQueryClient()
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [text, setText] = useState("")
   const [sendError, setSendError] = useState("")
+  const scrollAnchorRef = useRef<string | null>(null)
+  const isLoadingMoreRef = useRef(false)
 
   const { data: conv } = useQuery({
     queryKey: ["conversationDetailsCompany", conversationId],
@@ -35,15 +40,99 @@ export default function ConversationChatCompany({
     initialData: initialConvDetails ?? undefined,
   })
 
-  const { data: messages } = useQuery({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: MESSAGES_QUERY_KEY(conversationId),
-    queryFn: () => getConversationMessagesForCompany(conversationId),
-    initialData: initialMessages,
+    queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
+      return getConversationMessagesForCompany(conversationId, pageParam)
+    },
+    getNextPageParam: (firstPage): string | undefined => {
+      if (!firstPage.hasMore) return undefined
+      return firstPage.messages[0]?.created_at ?? undefined
+    },
+    initialPageParam: undefined as string | undefined,
+    initialData: {
+      pages: [{ messages: initialMessages, hasMore: initialHasMore }],
+      pageParams: [undefined],
+    },
+    select: (data) => ({
+      pages: [...data.pages].reverse(),
+      pageParams: [...data.pageParams].reverse(),
+    }),
   })
 
+  const messages = data?.pages.flatMap((p) => p.messages) ?? []
+
+  const isFirstMount = useRef(true)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    if (isFirstMount.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "instant" })
+      isFirstMount.current = false
+    }
+  }, [])
+
+  const lastMessageId = messages[messages.length - 1]?.id
+  useEffect(() => {
+    if (isLoadingMoreRef.current) return
+    if (!isFirstMount.current) {
+      const container = scrollContainerRef.current
+      if (!container) return
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const nearBottom = scrollHeight - scrollTop - clientHeight < 120
+      if (nearBottom) {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+      }
+    }
+  }, [lastMessageId])
+
+  const handleLoadMore = useCallback(async () => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    const scrollTop = container.scrollTop
+    const elements = container.querySelectorAll<HTMLElement>("[data-msg-id]")
+    let anchorId: string | null = null
+    for (const el of elements) {
+      const top = el.offsetTop
+      if (top <= scrollTop + 30) anchorId = el.getAttribute("data-msg-id")
+    }
+    if (!anchorId && messages.length > 0) anchorId = messages[0].id
+    scrollAnchorRef.current = anchorId
+    isLoadingMoreRef.current = true
+    await fetchNextPage()
+  }, [fetchNextPage, messages.length])
+
+  useLayoutEffect(() => {
+    const anchorId = scrollAnchorRef.current
+    scrollAnchorRef.current = null
+    isLoadingMoreRef.current = false
+    if (anchorId) {
+      const el = scrollContainerRef.current?.querySelector<HTMLElement>(
+        `[data-msg-id="${anchorId}"]`
+      )
+      if (el) {
+        el.scrollIntoView({ block: "start", behavior: "auto" })
+      }
+    }
+  }, [data?.pages.length])
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    if (container.scrollTop < 80 && hasNextPage && !isFetchingNextPage) {
+      handleLoadMore()
+    }
+  }, [hasNextPage, isFetchingNextPage, handleLoadMore])
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    container.addEventListener("scroll", handleScroll)
+    return () => container.removeEventListener("scroll", handleScroll)
+  }, [handleScroll])
 
   useEffect(() => {
     if (!conversationId) return
@@ -54,21 +143,26 @@ export default function ConversationChatCompany({
 
   const handleNewMessage = useCallback(
     (msg: Message) => {
-      queryClient.setQueryData<Message[]>(
+      queryClient.setQueryData(
         MESSAGES_QUERY_KEY(conversationId),
-        (prev) => {
-          if (!prev) return [msg]
-          if (prev.some((m) => m.id === msg.id)) return prev
-          // Reemplazar optimista si el contenido coincide
-          const optimisticIndex = prev.findIndex(
+        (old: { pages: { messages: Message[]; hasMore: boolean }[]; pageParams: unknown[] } | undefined) => {
+          if (!old) return old
+          const lastPage = old.pages[old.pages.length - 1]
+          const optimisticIndex = lastPage.messages.findIndex(
             (m) => m.id.startsWith("optimistic-") && m.content === msg.content
           )
-          if (optimisticIndex !== -1) {
-            const updated = [...prev]
-            updated[optimisticIndex] = msg
-            return updated
+          const updatedLastPage = {
+            ...lastPage,
+            messages: optimisticIndex !== -1
+              ? lastPage.messages.map((m, i) => (i === optimisticIndex ? msg : m))
+              : lastPage.messages.some((m) => m.id === msg.id)
+                ? lastPage.messages
+                : [...lastPage.messages, msg],
           }
-          return [...prev, msg]
+          return {
+            ...old,
+            pages: [...old.pages.slice(0, -1), updatedLastPage],
+          }
         }
       )
       queryClient.invalidateQueries({ queryKey: CONVERSATIONS_QUERY_KEY })
@@ -83,18 +177,13 @@ export default function ConversationChatCompany({
     const supabase = createClient()
     const channel = supabase
       .channel(`messages:${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => handleNewMessage(payload.new as Message)
-      )
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `conversation_id=eq.${conversationId}`,
+      }, (payload) => handleNewMessage(payload.new as Message))
       .subscribe()
-
     return () => {
       supabase.removeChannel(channel)
     }
@@ -105,11 +194,9 @@ export default function ConversationChatCompany({
     const trimmed = text.trim()
     if (!trimmed) return
 
-    // Limpiar input y error inmediatamente
     setText("")
     setSendError("")
 
-    // Crear mensaje optimista con ID temporal
     const optimisticId = `optimistic-${Date.now()}`
     const optimisticMsg: Message = {
       id: optimisticId,
@@ -123,27 +210,58 @@ export default function ConversationChatCompany({
       created_at: new Date().toISOString(),
     }
 
-    // Insertar optimista en el cache — aparece inmediatamente
-    queryClient.setQueryData<Message[]>(
+    queryClient.setQueryData(
       MESSAGES_QUERY_KEY(conversationId),
-      (prev) => [...(prev ?? []), optimisticMsg]
+      (old: { pages: { messages: Message[]; hasMore: boolean }[]; pageParams: unknown[] } | undefined) => {
+        if (!old) return old
+        const lastPage = old.pages[old.pages.length - 1]
+        return {
+          ...old,
+          pages: [
+            ...old.pages.slice(0, -1),
+            { ...lastPage, messages: [...lastPage.messages, optimisticMsg] },
+          ],
+        }
+      }
     )
 
     try {
       const realMsg = await sendCompanyMessage(conversationId, trimmed)
-
-      // Reemplazar el optimista con el mensaje real de la DB
-      queryClient.setQueryData<Message[]>(
+      queryClient.setQueryData(
         MESSAGES_QUERY_KEY(conversationId),
-        (prev) => prev?.map((m) => m.id === optimisticId ? realMsg : m) ?? [realMsg]
+        (old: { pages: { messages: Message[]; hasMore: boolean }[]; pageParams: unknown[] } | undefined) => {
+          if (!old) return old
+          const lastPage = old.pages[old.pages.length - 1]
+          return {
+            ...old,
+            pages: [
+              ...old.pages.slice(0, -1),
+              {
+                ...lastPage,
+                messages: lastPage.messages.map((m) => (m.id === optimisticId ? realMsg : m)),
+              },
+            ],
+          }
+        }
       )
       queryClient.invalidateQueries({ queryKey: CONVERSATIONS_QUERY_KEY })
-
     } catch (err) {
-      // Si falla: sacar el optimista, devolver texto al input, mostrar error
-      queryClient.setQueryData<Message[]>(
+      queryClient.setQueryData(
         MESSAGES_QUERY_KEY(conversationId),
-        (prev) => prev?.filter((m) => m.id !== optimisticId) ?? []
+        (old: { pages: { messages: Message[]; hasMore: boolean }[]; pageParams: unknown[] } | undefined) => {
+          if (!old) return old
+          const lastPage = old.pages[old.pages.length - 1]
+          return {
+            ...old,
+            pages: [
+              ...old.pages.slice(0, -1),
+              {
+                ...lastPage,
+                messages: lastPage.messages.filter((m) => m.id !== optimisticId),
+              },
+            ],
+          }
+        }
       )
       setText(trimmed)
       setSendError(err instanceof Error ? err.message : "Error al enviar el mensaje")
@@ -154,7 +272,6 @@ export default function ConversationChatCompany({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="border-b px-4 py-3 shrink-0">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm shrink-0">
@@ -166,8 +283,16 @@ export default function ConversationChatCompany({
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
+      >
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-2">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
         {messages.length === 0 && (
           <p className="text-xs text-center text-muted-foreground py-8">
             No hay mensajes aún. Enviá el primer mensaje para contactar a la persona candidata.
@@ -199,6 +324,7 @@ export default function ConversationChatCompany({
                 </div>
               )}
               <div
+                data-msg-id={msg.id}
                 className={cn("flex flex-col gap-0.5", isCompany ? "items-end" : "items-start")}
               >
                 <div
@@ -207,7 +333,6 @@ export default function ConversationChatCompany({
                     isCompany
                       ? "bg-primary text-primary-foreground rounded-br-sm"
                       : "bg-muted text-foreground rounded-bl-sm",
-                    // Levemente transparente mientras espera confirmación de DB
                     isOptimistic && "opacity-60"
                   )}
                 >
@@ -222,7 +347,6 @@ export default function ConversationChatCompany({
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div className="border-t px-4 py-3 shrink-0">
         {sendError && (
           <div className="flex items-center gap-1.5 text-destructive text-xs mb-2">

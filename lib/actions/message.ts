@@ -160,14 +160,17 @@ export async function getCompanyConversations(): Promise<ConversationWithDetails
 }
 
 // Get messages for a conversation (candidate must be participant)
-export async function getConversationMessages(conversationId: string): Promise<Message[]> {
+export async function getConversationMessages(
+  conversationId: string,
+  cursor?: string,  // created_at del mensaje más antiguo que ya tenés
+  limit = 20
+): Promise<{ messages: Message[]; hasMore: boolean }> {
   const supabase = await createClient()
 
   const { data: auth } = await supabase.auth.getClaims()
   if (!auth?.claims) redirect("/auth/login")
   const candidateId = auth.claims.sub
 
-  // Security: make sure the candidate owns this conversation
   const { data: conv } = await supabase
     .from("conversations")
     .select("id")
@@ -177,25 +180,41 @@ export async function getConversationMessages(conversationId: string): Promise<M
 
   if (!conv) throw new Error("No tenés acceso a esta conversación")
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("messages")
     .select("id, conversation_id, sender_id, sender_role, content, attachment_url, attachment_type, read_at, created_at")
     .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false }) // ← descendente para paginar hacia atrás
+    .limit(limit + 1) // pedimos 1 extra para saber si hay más
 
+  // Si hay cursor, traer solo mensajes anteriores a ese punto
+  if (cursor) {
+    query = query.lt("created_at", cursor)
+  }
+
+  const { data, error } = await query
   if (error) throw new Error(error.message)
-  return (data ?? []) as Message[]
+
+  const rows = data ?? []
+  const hasMore = rows.length > limit
+  // Sacar el extra que usamos para detectar hasMore
+  const messages = rows.slice(0, limit).reverse() // revertir para orden cronológico
+
+  return { messages, hasMore }
 }
 
-// Get messages for a conversation (company must be participant)
-export async function getConversationMessagesForCompany(conversationId: string): Promise<Message[]> {
+// Get messages for a conversation (company must be participant), paginated like candidate
+export async function getConversationMessagesForCompany(
+  conversationId: string,
+  cursor?: string,
+  limit = 20
+): Promise<{ messages: Message[]; hasMore: boolean }> {
   const supabase = await createClient()
 
   const { data: auth } = await supabase.auth.getClaims()
   if (!auth?.claims) redirect("/auth/login")
   const companyId = auth.claims.sub
 
-  // Security: make sure the company owns this conversation
   const { data: conv } = await supabase
     .from("conversations")
     .select("id")
@@ -205,14 +224,25 @@ export async function getConversationMessagesForCompany(conversationId: string):
 
   if (!conv) throw new Error("No tenés acceso a esta conversación")
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("messages")
     .select("id, conversation_id, sender_id, sender_role, content, attachment_url, attachment_type, read_at, created_at")
     .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
+    .limit(limit + 1)
 
+  if (cursor) {
+    query = query.lt("created_at", cursor)
+  }
+
+  const { data, error } = await query
   if (error) throw new Error(error.message)
-  return (data ?? []) as Message[]
+
+  const rows = (data ?? []) as Message[]
+  const hasMore = rows.length > limit
+  const messages = rows.slice(0, limit).reverse()
+
+  return { messages, hasMore }
 }
 
 // Get a single conversation with its details (for the chat header)

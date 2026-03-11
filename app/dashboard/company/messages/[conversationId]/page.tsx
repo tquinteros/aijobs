@@ -12,11 +12,13 @@ export default async function ConversationPage({
 }) {
   const { conversationId } = await params
 
-  const [initialConversations, initialMessages, initialConvDetails] = await Promise.all([
+  const [initialConversations, firstPage, initialConvDetails] = await Promise.all([
     getCompanyConversations(),
     getConversationMessagesForCompany(conversationId),
     getConversationDetailsForCompany(conversationId),
   ])
+  const initialMessages = firstPage.messages
+  const initialHasMore = firstPage.hasMore
 
   return (
     <div className="flex h-[calc(100vh-0px)] overflow-hidden border rounded-lg">
@@ -36,6 +38,7 @@ export default async function ConversationPage({
         <ConversationChatCompany
           conversationId={conversationId}
           initialMessages={initialMessages}
+          initialHasMore={initialHasMore}
           initialConvDetails={initialConvDetails}
         />
       </div>

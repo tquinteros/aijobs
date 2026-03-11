@@ -10,7 +10,7 @@ export default async function ConversationPage({
 }) {
   const { conversationId } = await params
   const initialConversations: ConversationWithDetails[] = await getCandidateConversations()
-  const initialMessages: Message[] = await getConversationMessages(conversationId)
+  const { messages: initialMessages, hasMore: initialHasMore } = await getConversationMessages(conversationId)
   const initialConvDetails: ConversationWithDetails = await getConversationDetails(conversationId)
   return (
     <div className="flex h-[calc(100vh-0px)] overflow-hidden border rounded-lg">
@@ -29,7 +29,7 @@ export default async function ConversationPage({
 
       {/* Chat panel */}
       <div className="flex-1 flex flex-col min-w-0">
-        <ConversationChat conversationId={conversationId} initialMessages={initialMessages} initialConvDetails={initialConvDetails} />
+        <ConversationChat conversationId={conversationId} initialMessages={initialMessages} initialHasMore={initialHasMore} initialConvDetails={initialConvDetails} />
       </div>
     </div>
   )
