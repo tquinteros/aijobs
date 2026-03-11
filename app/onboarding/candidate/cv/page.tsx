@@ -4,7 +4,8 @@
 import { useRef, useState } from "react"
 import { CheckCircle, FileText, Loader2, UploadCloud, XCircle } from "lucide-react"
 import { uploadAndParseCV } from "@/lib/actions/candidate"
-
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 type Step = "idle" | "uploading" | "extracting" | "analyzing" | "saving" | "done" | "error"
 
 const stepMessages: Record<Step, string> = {
@@ -23,7 +24,7 @@ export default function CVUploadPage() {
   const [errorMsg, setErrorMsg] = useState("")
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-
+  const router = useRouter()
   function handleFile(selected: File) {
     if (selected.type !== "application/pdf") {
       setErrorMsg("Solo se aceptan archivos PDF")
@@ -46,25 +47,27 @@ export default function CVUploadPage() {
 
   async function handleSubmit() {
     if (!file) return
-
+  
+    setErrorMsg("")
+    setStep("uploading")
+    await new Promise(r => setTimeout(r, 500))
+  
+    setStep("extracting")
+    await new Promise(r => setTimeout(r, 500))
+  
+    setStep("analyzing")
+    await new Promise(r => setTimeout(r, 400))
+  
+    setStep("saving")
+  
+    const formData = new FormData()
+    formData.append("cv", file)
+  
     try {
-      setStep("uploading")
-      await new Promise(r => setTimeout(r, 600))
-
-      setStep("extracting")
-      await new Promise(r => setTimeout(r, 600))
-
-      setStep("analyzing")
-
-      const formData = new FormData()
-      formData.append("cv", file)
-
-      // La server action hace todo el trabajo real
-      // Los pasos anteriores son visuales para mejor UX
-      setStep("saving")
       await uploadAndParseCV(formData)
-
       setStep("done")
+      toast.success("¡CV analizado correctamente!")
+      router.push("/dashboard/candidate")
     } catch (error) {
       setStep("error")
       setErrorMsg(error instanceof Error ? error.message : "Error desconocido")

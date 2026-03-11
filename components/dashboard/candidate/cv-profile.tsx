@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import type React from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { CheckCircle, FileText, Loader2, UploadCloud, XCircle, Info } from "lucide-react"
-import { CandidateProfile, getCandidateProfile, updateCVAndRefreshMatches } from "@/lib/actions/candidate"
-
+import { CandidateProfile, getCandidateProfile, uploadAndParseCV } from "@/lib/actions/candidate"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 type Step = "idle" | "uploading" | "extracting" | "analyzing" | "saving" | "done" | "error"
 
 const stepMessages: Record<Step, string> = {
@@ -19,6 +20,7 @@ const stepMessages: Record<Step, string> = {
 }
 
 export default function CvProfile({ initialProfile }: { initialProfile: CandidateProfile }) {
+  const queryClient = useQueryClient()
   const { data: profile } = useQuery({
     queryKey: ["candidateProfile"],
     queryFn: getCandidateProfile,
@@ -31,7 +33,7 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const [now, setNow] = useState(() => Date.now())
-
+  const router = useRouter()
   useEffect(() => {
     const id = setInterval(() => {
       setNow(Date.now())
@@ -108,8 +110,9 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
 
       // La server action hace todo el trabajo real (parseo + embeddings + refresh de matches)
       setStep("saving")
-      await updateCVAndRefreshMatches(formData)
-
+      await uploadAndParseCV(formData)
+      toast.success("¡CV analizado correctamente!")
+      queryClient.refetchQueries({ queryKey: ["candidateProfile"] })
       setStep("done")
     } catch (error) {
       setStep("error")

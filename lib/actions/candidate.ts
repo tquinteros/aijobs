@@ -225,9 +225,4 @@ export async function uploadAndParseCV(formData: FormData) {
     console.error("[candidate] Error borrando candidate_job_matches:", e)
   }
   revalidatePath("/dashboard/candidate")
-  redirect("/dashboard/candidate")
-}
-
-export async function updateCVAndRefreshMatches(formData: FormData) {
-  await uploadAndParseCV(formData)
 }
