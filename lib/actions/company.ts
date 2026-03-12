@@ -49,6 +49,31 @@ export async function getCompanyProfile(): Promise<CompanyProfile> {
   return profile as CompanyProfile
 }
 
+export async function updateCompanyProfile(formData: FormData) {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getClaims()
+  if (!auth?.claims) redirect("/auth/login")
+  const userId = auth.claims.sub
+
+  const updates = {
+    company_name: formData.get("company_name") as string,
+    website: ((formData.get("website") as string) || null) as string | null,
+    description: (formData.get("description") as string) || null,
+    location: (formData.get("location") as string) || null,
+    industry: (formData.get("industry") as string) || null,
+    updated_at: new Date().toISOString(),
+  }
+
+  const { error } = await supabase
+    .from("company_profiles")
+    .update(updates)
+    .eq("id", userId)
+
+  if (error) throw new Error(error.message)
+
+  revalidatePath("/dashboard/company")
+}
+
 export async function getJobPostings(): Promise<JobPosting[]> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getClaims()

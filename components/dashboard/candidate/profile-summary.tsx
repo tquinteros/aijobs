@@ -134,7 +134,6 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
               {senioryLabel[seniority]}
             </span>
           </div>
-          {/* ← Solo esto es nuevo */}
           <EditProfileSheet profile={profile} />
         </div>
         <p className="text-muted-foreground mt-1">{profile.title}</p>

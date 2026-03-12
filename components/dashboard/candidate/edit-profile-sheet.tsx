@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Pencil, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { TagInput } from "@/components/ui/tag-input"
+import { toast } from "sonner"
 
 type Props = {
     profile: CandidateProfile
@@ -53,10 +54,9 @@ export function EditProfileSheet({ profile }: Props) {
                 await updateCandidateProfile(formData)
                 await queryClient.invalidateQueries({ queryKey: ["candidateProfile"] })
                 setSuccess(true)
-                setTimeout(() => {
-                    setOpen(false)
-                    setSuccess(false)
-                }, 1000)
+                toast.success("Perfil de candidato actualizado correctamente")
+                setOpen(false)
+                setSuccess(false)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Error al guardar")
             }
