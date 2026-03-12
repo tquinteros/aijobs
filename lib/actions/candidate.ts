@@ -44,7 +44,9 @@ export async function getCandidateProfile(): Promise<CandidateProfile> {
 
   const { data: profile, error: profileError } = await supabase
     .from("candidate_profiles")
-    .select("*")
+    .select(
+      "id, full_name, title, location, bio, cv_url, cv_parsed, cv_parsed_at, skills, seniority, years_of_experience, languages, updated_at",
+    )
     .eq("id", data.claims.sub)
     .single()
 
@@ -224,5 +226,64 @@ export async function uploadAndParseCV(formData: FormData) {
   } catch (e) {
     console.error("[candidate] Error borrando candidate_job_matches:", e)
   }
+  revalidatePath("/dashboard/candidate")
+}
+
+export async function updateCandidateProfile(formData: FormData) {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getClaims()
+  if (!auth?.claims) redirect("/auth/login")
+  const userId = auth.claims.sub
+
+  const skillsRaw = formData.get("skills") as string
+  const skills = skillsRaw
+    ? skillsRaw.split(",").map((s) => s.trim()).filter(Boolean)
+    : []
+
+  const yearsRaw = formData.get("years_of_experience") as string
+
+  const updates = {
+    full_name: formData.get("full_name") as string,
+    title: formData.get("title") as string,
+    bio: formData.get("bio") as string,
+    location: formData.get("location") as string,
+    seniority: formData.get("seniority") as string,
+    years_of_experience: yearsRaw ? parseInt(yearsRaw) : null,
+    skills,
+    updated_at: new Date().toISOString(),
+  }
+
+  const { error } = await supabase
+    .from("candidate_profiles")
+    .update(updates)
+    .eq("id", userId)
+
+  if (error) throw new Error(error.message)
+
+  const embeddingInput = {
+    skills: updates.skills,
+    seniority: updates.seniority,
+    years_of_experience: updates.years_of_experience ?? 0,
+    job_titles: [updates.title],
+  }
+
+  const text = buildCandidateText(embeddingInput)
+  const embedding = await generateEmbedding(text)
+
+  const { error: embeddingError } = await supabase
+    .from("candidate_profiles")
+    .update({ embedding })
+    .eq("id", userId)
+
+  if (embeddingError) throw new Error(`Error actualizando embedding: ${embeddingError.message}`)
+
+  try {
+    await redis.del(`jobs:vector:${userId}`)
+  } catch (e) {
+    console.error(e)
+  }
+
+  await supabase.from("matches").delete().eq("candidate_id", userId)
+
   revalidatePath("/dashboard/candidate")
 }

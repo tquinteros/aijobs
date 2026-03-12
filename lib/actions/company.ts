@@ -10,6 +10,8 @@ import type {
 } from "@/lib/company"
 import { buildJobText, generateEmbedding } from "../ai/embeddings"
 import { supabaseAdmin } from "@/lib/supabase/admin"
+import { redis } from "../redis"
+import { revalidatePath } from "next/cache"
 
 export async function createCompanyProfile(formData: FormData) {
   const supabase = await createClient()
@@ -117,6 +119,18 @@ export async function createJobPosting(formData: FormData): Promise<void> {
     .eq("id", insertedJob.id)
 
   if (embeddingError) throw new Error(`Error guardando embedding: ${embeddingError.message}`)
+
+  try {
+    const keys = await redis.keys("jobs:vector:*")
+    if (keys.length > 0) {
+      await redis.del(...keys)
+    }
+    console.log("[jobs] Cache invalidado por nuevo job:", keys.length, "keys borradas")
+  } catch (e) {
+    console.error("[jobs] Error invalidando cache:", e)
+  }
+  revalidatePath("/jobs")
+  revalidatePath("/dashboard/company")
 }
 
 export async function updateJobStatus(

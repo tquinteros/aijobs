@@ -16,6 +16,7 @@ import {
   FileCheck,
   AlertCircle,
 } from "lucide-react"
+import { EditProfileSheet } from "./edit-profile-sheet"
 
 const senioryLabel: Record<string, string> = {
   junior: "Junior",
@@ -104,6 +105,8 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
     initialData: initialProfile,
   })
 
+  console.log(profile, "profile")
+
   if (isLoading) return <SummarySkeleton />
 
   if (isError || !profile) {
@@ -124,11 +127,15 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-2xl font-bold">{profile.full_name}</h1>
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${senioryColor[seniority]}`}>
-            {senioryLabel[seniority]}
-          </span>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold">{profile.full_name}</h1>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${senioryColor[seniority]}`}>
+              {senioryLabel[seniority]}
+            </span>
+          </div>
+          {/* ← Solo esto es nuevo */}
+          <EditProfileSheet profile={profile} />
         </div>
         <p className="text-muted-foreground mt-1">{profile.title}</p>
         {profile.location && (
