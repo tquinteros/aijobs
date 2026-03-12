@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { getCurrentUser } from "@/lib/auth/get-current-user"
+import { ThemeSwitcher } from "../theme-switcher"
 
 export async function HeaderNav() {
   const user = await getCurrentUser()
@@ -64,6 +65,7 @@ export async function HeaderNav() {
         {user && !user.role && (
           <span className="text-sm text-muted-foreground">Account</span>
         )}
+        <ThemeSwitcher />
       </div>
     </nav>
   )

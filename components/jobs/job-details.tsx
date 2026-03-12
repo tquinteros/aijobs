@@ -29,6 +29,7 @@ import {
   USER_APPLICATION_QUERY_KEY,
   type Application,
 } from "@/lib/company"
+import { JobDetailsMessageLink } from "@/components/jobs/job-details-message-link"
 
 const locationTypeLabel: Record<string, string> = {
   remote: "Remoto",
@@ -141,6 +142,9 @@ function ApplicationSection({ jobId }: { jobId: string }) {
                 year: "numeric",
               })}
             </p>
+          )}
+          {statusConfig?.label?.toLowerCase() === "contactado/a" && (
+            <JobDetailsMessageLink jobId={jobId} />
           )}
         </CardContent>
       </Card>

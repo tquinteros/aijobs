@@ -31,4 +31,6 @@ export type Conversation = {
   }
   
   export const CONVERSATIONS_QUERY_KEY = ["conversations"] as const
+  export const CONVERSATION_ID_FOR_JOB_QUERY_KEY = (jobId: string) =>
+    ["conversationIdForJob", jobId] as const
   export const MESSAGES_QUERY_KEY = (id: string) => ["messages", id] as const

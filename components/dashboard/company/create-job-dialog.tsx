@@ -71,7 +71,7 @@ export function CreateJobDialog() {
           Nueva búsqueda
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="!max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Publicar búsqueda laboral</DialogTitle>
           <DialogDescription>

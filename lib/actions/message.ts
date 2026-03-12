@@ -67,7 +67,25 @@ export async function getOrCreateConversation(
   return created.id
 }
 
-// Get all conversations for the currently logged-in candidate
+export async function getConversationIdForJob(jobId: string): Promise<string | null> {
+  const supabase = await createClient()
+
+  const { data: auth } = await supabase.auth.getClaims()
+  if (!auth?.claims?.sub) return null
+
+  const candidateId = auth.claims.sub as string
+
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("candidate_id", candidateId)
+    .eq("job_id", jobId)
+    .maybeSingle()
+
+  if (error) return null
+  return data?.id ?? null
+}
+
 export async function getCandidateConversations(): Promise<ConversationWithDetails[]> {
   const supabase = await createClient()
 
@@ -113,7 +131,6 @@ export async function getCandidateConversations(): Promise<ConversationWithDetai
   return list as unknown as ConversationWithDetails[]
 }
 
-// Get all conversations for the currently logged-in company
 export async function getCompanyConversations(): Promise<ConversationWithDetails[]> {
   const supabase = await createClient()
 
@@ -159,10 +176,9 @@ export async function getCompanyConversations(): Promise<ConversationWithDetails
   return list as unknown as ConversationWithDetails[]
 }
 
-// Get messages for a conversation (candidate must be participant)
 export async function getConversationMessages(
   conversationId: string,
-  cursor?: string,  // created_at del mensaje más antiguo que ya tenés
+  cursor?: string,
   limit = 20
 ): Promise<{ messages: Message[]; hasMore: boolean }> {
   const supabase = await createClient()
@@ -184,10 +200,9 @@ export async function getConversationMessages(
     .from("messages")
     .select("id, conversation_id, sender_id, sender_role, content, attachment_url, attachment_type, read_at, created_at")
     .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: false }) // ← descendente para paginar hacia atrás
-    .limit(limit + 1) // pedimos 1 extra para saber si hay más
+    .order("created_at", { ascending: false })
+    .limit(limit + 1)
 
-  // Si hay cursor, traer solo mensajes anteriores a ese punto
   if (cursor) {
     query = query.lt("created_at", cursor)
   }
@@ -197,13 +212,11 @@ export async function getConversationMessages(
 
   const rows = data ?? []
   const hasMore = rows.length > limit
-  // Sacar el extra que usamos para detectar hasMore
-  const messages = rows.slice(0, limit).reverse() // revertir para orden cronológico
+  const messages = rows.slice(0, limit).reverse()
 
   return { messages, hasMore }
 }
 
-// Get messages for a conversation (company must be participant), paginated like candidate
 export async function getConversationMessagesForCompany(
   conversationId: string,
   cursor?: string,
@@ -245,7 +258,6 @@ export async function getConversationMessagesForCompany(
   return { messages, hasMore }
 }
 
-// Get a single conversation with its details (for the chat header)
 export async function getConversationDetails(conversationId: string): Promise<ConversationWithDetails> {
   const supabase = await createClient()
 
@@ -298,7 +310,6 @@ export async function getConversationDetails(conversationId: string): Promise<Co
   return row as unknown as ConversationWithDetails
 }
 
-// Get a single conversation with its details for company view
 export async function getConversationDetailsForCompany(conversationId: string): Promise<ConversationWithDetails> {
   const supabase = await createClient()
 
@@ -343,7 +354,6 @@ export async function getConversationDetailsForCompany(conversationId: string): 
   return row as unknown as ConversationWithDetails
 }
 
-// Send a message as a candidate
 export async function sendCandidateMessage(
   conversationId: string,
   content: string
@@ -379,7 +389,6 @@ export async function sendCandidateMessage(
   return data as Message
 }
 
-// Send a message as a company
 export async function sendCompanyMessage(
   conversationId: string,
   content: string
@@ -390,7 +399,6 @@ export async function sendCompanyMessage(
   if (!auth?.claims) redirect("/auth/login")
   const companyId = auth.claims.sub
 
-  // Security: verify the company owns this conversation
   const { data: conv } = await supabase
     .from("conversations")
     .select("id")
@@ -415,7 +423,6 @@ export async function sendCompanyMessage(
   return data as Message
 }
 
-// Mark all unread messages in a conversation as read for the candidate
 export async function markConversationReadCandidate(conversationId: string): Promise<void> {
   const supabase = await createClient()
 
@@ -423,7 +430,6 @@ export async function markConversationReadCandidate(conversationId: string): Pro
   if (!auth?.claims) redirect("/auth/login")
   const candidateId = auth.claims.sub
 
-  // Security check
   const { data: conv } = await supabase
     .from("conversations")
     .select("id")
@@ -433,7 +439,6 @@ export async function markConversationReadCandidate(conversationId: string): Pro
 
   if (!conv) return
 
-  // Mark unread messages from company as read
   await supabase
     .from("messages")
     .update({ read_at: new Date().toISOString() })
@@ -441,15 +446,13 @@ export async function markConversationReadCandidate(conversationId: string): Pro
     .eq("sender_role", "company")
     .is("read_at", null)
 
-  // Reset unread counter for candidate
   await supabase
     .from("conversations")
     .update({ unread_candidate: 0 })
     .eq("id", conversationId)
 
-  }
+}
 
-// Mark all unread messages in a conversation as read for the company
 export async function markConversationReadCompany(conversationId: string): Promise<void> {
   const supabase = await createClient()
 
@@ -457,7 +460,6 @@ export async function markConversationReadCompany(conversationId: string): Promi
   if (!auth?.claims) redirect("/auth/login")
   const companyId = auth.claims.sub
 
-  // Security check
   const { data: conv } = await supabase
     .from("conversations")
     .select("id")
@@ -467,7 +469,6 @@ export async function markConversationReadCompany(conversationId: string): Promi
 
   if (!conv) return
 
-  // Mark unread messages from candidate as read
   await supabase
     .from("messages")
     .update({ read_at: new Date().toISOString() })
@@ -475,7 +476,6 @@ export async function markConversationReadCompany(conversationId: string): Promi
     .eq("sender_role", "candidate")
     .is("read_at", null)
 
-  // Reset unread counter for company
   await supabase
     .from("conversations")
     .update({ unread_company: 0 })
