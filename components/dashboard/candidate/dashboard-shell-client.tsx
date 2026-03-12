@@ -1,6 +1,7 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { type ReactNode, useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { Menu } from "lucide-react"
 
 import { CandidateSidebar } from "@/components/dashboard/candidate/sidebar"
@@ -18,10 +19,17 @@ export function CandidateDashboardShellClient({
   fullName,
   title,
 }: CandidateDashboardShellClientProps) {
+  const pathname = usePathname()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  useEffect(() => {
+    setDrawerOpen(false)
+  }, [pathname])
+
   return (
     <div className="flex h-screen flex-col overflow-hidden md:flex-row">
       <header className="flex items-center border-b bg-card px-4 py-3 md:hidden">
-        <Drawer direction="left">
+        <Drawer direction="left" open={drawerOpen} onOpenChange={setDrawerOpen}>
           <DrawerTrigger asChild>
             <Button
               variant="ghost"

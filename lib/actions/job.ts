@@ -106,7 +106,6 @@ export async function getPublicJobs(): Promise<PublicJobListing[]> {
           }
           return withoutEmbedding(withCompany as Record<string, unknown>) as PublicJobListing
         })
-
         await redis.set(cacheKey, result, { ex: JOBS_CACHE_TTL })
         console.log("[jobs] Redis SET (vector):", cacheKey, "items:", result.length, "TTL:", JOBS_CACHE_TTL, "s")
 
