@@ -95,6 +95,9 @@ export type JobApplicationForCompany = {
     languages: string[]
     cv_url: string | null
   } | null
+  match?: {
+    score: number | null
+  } | null
 }
 
 export type CandidateApplicationWithJob = {
@@ -115,3 +118,7 @@ export type CandidateApplicationWithJob = {
     } | null
   }) | null
 }
+
+
+export const MATCH_SCORE_QUERY_KEY = (candidateId: string, jobId: string) =>
+  ["match-score", candidateId, jobId] as const

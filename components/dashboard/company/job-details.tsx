@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Inbox,
   Briefcase,
+  Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -30,7 +31,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
-import { getJobWithApplications, updateJobStatus, updateApplicationStatus } from "@/lib/actions/company"
+import { getJobWithApplications, updateJobStatus, updateApplicationStatus, generateMatchScore } from "@/lib/actions/company"
 import {
   COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY,
   JOB_POSTINGS_QUERY_KEY,
@@ -154,6 +155,21 @@ function ApplicationCard({
   const candidate = application.candidate_profiles
   const statusCfg = applicationStatusConfig[application.status]
 
+
+  const { mutate: generateScore, isPending: isGeneratingScore } = useMutation({
+    mutationFn: () =>
+      generateMatchScore(application.candidate_id, jobId, application.id),
+    onSuccess: (score) => {
+      toast.success(`Score generado: ${score}%`)
+      queryClient.invalidateQueries({
+        queryKey: COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY(jobId),
+      })
+    },
+    onError: () => toast.error("No se pudo generar el score"),
+  })
+
+  const score = application.match?.score ?? null
+
   const { mutate: changeStatus, isPending } = useMutation({
     mutationFn: (status: ApplicationStatus) =>
       updateApplicationStatus(application.id, jobId, status),
@@ -237,6 +253,29 @@ function ApplicationCard({
 
             {/* Badges row */}
             <div className="flex flex-wrap items-center gap-2">
+              {score !== null ? (
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${score >= 70
+                    ? "bg-green-100 text-green-700 border-green-200"
+                    : score >= 50
+                      ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                      : "bg-red-100 text-red-700 border-red-200"
+                  }`}>
+                  {score}% match
+                </span>
+              ) : (
+                <button
+                  onClick={() => generateScore()}
+                  disabled={isGeneratingScore}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+                >
+                  {isGeneratingScore ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3" />
+                  )}
+                  {isGeneratingScore ? "Calculando..." : "Generar match"}
+                </button>
+              )}
               {candidate?.seniority && (
                 <Badge variant="secondary" className="text-xs font-normal">
                   {seniorityLabel[candidate.seniority] ?? candidate.seniority}

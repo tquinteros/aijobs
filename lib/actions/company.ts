@@ -194,35 +194,54 @@ export async function getJobWithApplications(jobId: string): Promise<{
 
   const { data: rawApplications, error: appError } = await supabase
     .from("applications")
-    .select("id, candidate_id, status, cover_letter, applied_at, updated_at")
+    .select("id, candidate_id, status, cover_letter, applied_at, updated_at, match_id")
     .eq("job_id", jobId)
     .order("applied_at", { ascending: false })
 
   if (appError) throw new Error(appError.message)
 
   const apps = rawApplications ?? []
-
-  // Fetch candidate profiles via admin client to bypass RLS
   const candidateIds = apps.map((a) => a.candidate_id)
+
   const profileMap: Record<string, JobApplicationForCompany["candidate_profiles"]> = {}
+  const matchMap: Record<string, { score: number } | null> = {}
 
   if (candidateIds.length > 0) {
+    // Fetch profiles
     const { data: profiles } = await supabaseAdmin
       .from("candidate_profiles")
-      .select(
-        "id, full_name, title, location, seniority, years_of_experience, skills, languages, cv_url"
-      )
+      .select("id, full_name, title, location, seniority, years_of_experience, skills, languages, cv_url")
       .in("id", candidateIds)
 
     for (const p of profiles ?? []) {
       profileMap[p.id] = p
     }
+
+    // Fetch matches para este job
+    const { data: matches } = await supabaseAdmin
+      .from("matches")
+      .select("candidate_id, score")
+      .eq("job_id", jobId)
+      .in("candidate_id", candidateIds)
+
+    for (const m of matches ?? []) {
+      matchMap[m.candidate_id] = { score: m.score }
+    }
   }
 
-  const applications: JobApplicationForCompany[] = apps.map((app) => ({
-    ...app,
-    candidate_profiles: profileMap[app.candidate_id] ?? null,
-  }))
+  const applications: JobApplicationForCompany[] = apps
+    .map((app) => ({
+      ...app,
+      candidate_profiles: profileMap[app.candidate_id] ?? null,
+      match: matchMap[app.candidate_id] ?? null,
+    }))
+    // Ordenar: con score primero (descendente), sin score al final
+    .sort((a, b) => {
+      if (a.match && b.match) return b.match.score - a.match.score
+      if (a.match) return -1
+      if (b.match) return 1
+      return 0
+    })
 
   return {
     job: job as JobPosting,
@@ -255,4 +274,64 @@ export async function updateApplicationStatus(
     .eq("job_id", jobId)
 
   if (updateError) throw new Error(updateError.message)
+}
+
+// lib/actions/company.ts — agregar
+export async function generateMatchScore(
+  candidateId: string,
+  jobId: string,
+  applicationId: string
+): Promise<number> {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getClaims()
+  if (!auth?.claims) redirect("/auth/login")
+
+  const { data: job } = await supabaseAdmin
+  .from("job_postings")
+  .select("embedding")
+  .eq("id", jobId)
+  .single()
+
+if (!job?.embedding) throw new Error("Job sin embedding")
+
+const { data: candidate } = await supabaseAdmin
+  .from("candidate_profiles")
+  .select("embedding")
+  .eq("id", candidateId)
+  .single()
+
+if (!candidate?.embedding) throw new Error("Candidato sin embedding")
+
+  const parseEmbedding = (val: unknown): number[] => {
+    if (Array.isArray(val)) return val
+    if (typeof val === "string") return JSON.parse(val)
+    throw new Error("Formato de embedding inválido")
+  }
+  
+  const a = parseEmbedding(job.embedding)
+  const b = parseEmbedding(candidate.embedding)
+  const dot = a.reduce((sum, val, i) => sum + val * b[i], 0)
+  const magA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0))
+  const magB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0))
+  const score = Math.round((dot / (magA * magB)) * 100)
+
+  // Guardar en matches (upsert por si ya existe)
+  const { data: match } = await supabase
+    .from("matches")
+    .upsert(
+      { candidate_id: candidateId, job_id: jobId, score, calculated_at: new Date().toISOString() },
+      { onConflict: "candidate_id,job_id" }
+    )
+    .select("id")
+    .single()
+
+  // Vincular match_id en la application
+  if (match?.id) {
+    await supabase
+      .from("applications")
+      .update({ match_id: match.id })
+      .eq("id", applicationId)
+  }
+
+  return score
 }
