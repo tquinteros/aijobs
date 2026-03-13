@@ -17,7 +17,7 @@ export function JobDetailsMessageLink({ jobId }: JobDetailsMessageLinkProps) {
     queryKey: CONVERSATION_ID_FOR_JOB_QUERY_KEY(jobId),
     queryFn: () => getConversationIdForJob(jobId),
   })
-
+  console.log("conversationId", conversationId)
   if (isLoading) {
     return <Skeleton className="h-9 w-full rounded-md" />
   }
@@ -28,7 +28,7 @@ export function JobDetailsMessageLink({ jobId }: JobDetailsMessageLinkProps) {
     <Button variant="outline" className="w-full gap-2" asChild>
       <Link href={`/dashboard/candidate/messages/${conversationId}`}>
         <MessageCircle className="h-4 w-4" />
-        Ver conversación
+        View conversation
       </Link>
     </Button>
   )

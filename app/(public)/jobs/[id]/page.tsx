@@ -1,7 +1,7 @@
 // app/jobs/[id]/page.tsx
 import { Suspense } from "react"
 import { getCurrentUser } from "@/lib/auth/get-current-user"
-import { getJobById, getUserApplication } from "@/lib/actions/job"
+import { getJobById } from "@/lib/actions/job"
 import JobDetails from "@/components/jobs/job-details"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
@@ -42,16 +42,14 @@ async function JobDetailsContent({
   const user = await getCurrentUser()
   const canApply = user?.role !== "company"
 
-  const [initialJob, initialApplication] = await Promise.all([
+  const [initialJob] = await Promise.all([
     getJobById(id),
-    canApply && user ? getUserApplication(id) : Promise.resolve(null),
   ])
 
   return (
     <JobDetails
       id={id}
       initialJob={initialJob}
-      initialApplication={initialApplication}
       canApply={canApply}
     />
   )
