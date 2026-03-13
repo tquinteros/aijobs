@@ -140,7 +140,6 @@ export async function getJobById(jobId: string): Promise<PublicJobListing | null
 
 export async function getUserApplication(jobId: string): Promise<Application | null> {
   const supabase = await createClient()
-
   const { data: authData } = await supabase.auth.getClaims()
   const userId = authData?.claims?.sub
 
@@ -154,7 +153,6 @@ export async function getUserApplication(jobId: string): Promise<Application | n
     .single()
 
   if (error) return null
-
   return data as Application
 }
 

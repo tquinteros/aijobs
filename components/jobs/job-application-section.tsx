@@ -67,7 +67,6 @@ export function JobApplicationSection({ jobId }: JobApplicationSectionProps) {
     queryKey: USER_APPLICATION_QUERY_KEY(jobId),
     queryFn: () => getUserApplication(jobId),
   })
-  console.log(application, "app")
   const queryClient = useQueryClient()
   const [coverLetter, setCoverLetter] = useState("")
 
@@ -148,7 +147,7 @@ export function JobApplicationSection({ jobId }: JobApplicationSectionProps) {
               })}
             </p>
           )}
-          {statusConfig?.label?.toLowerCase() === "contactado/a" && (
+          {statusConfig?.label?.toLowerCase() === "contacted" && (
             <JobDetailsMessageLink jobId={jobId} />
           )}
         </CardContent>
