@@ -49,13 +49,46 @@ export async function getCompanyProfile(): Promise<CompanyProfile> {
   return profile as CompanyProfile
 }
 
+const LOGO_MAX_SIZE = 2 * 1024 * 1024 // 2MB
+const LOGO_TYPES = ["image/jpeg", "image/png", "image/webp"]
+
+function getLogoExtension(mime: string): string {
+  if (mime === "image/jpeg" || mime === "image/jpg") return "jpg"
+  if (mime === "image/png") return "png"
+  if (mime === "image/webp") return "webp"
+  return "jpg"
+}
+
 export async function updateCompanyProfile(formData: FormData) {
   const supabase = await createClient()
   const { data: auth } = await supabase.auth.getClaims()
   if (!auth?.claims) redirect("/auth/login")
   const userId = auth.claims.sub
 
-  const updates = {
+  let logoUrl: string | null | undefined = undefined
+
+  const logoFile = formData.get("logo") as File | null
+  if (logoFile && logoFile.size > 0) {
+    if (!LOGO_TYPES.includes(logoFile.type))
+      throw new Error("Logo must be JPEG, PNG or WebP")
+    if (logoFile.size > LOGO_MAX_SIZE)
+      throw new Error("Logo must be under 2MB")
+    const ext = getLogoExtension(logoFile.type)
+    const filePath = `company/${userId}/logo.${ext}`
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("aijobs-cv")
+      .upload(filePath, logoFile, {
+        contentType: logoFile.type,
+        upsert: true,
+      })
+    if (uploadError) throw new Error(`Error uploading logo: ${uploadError.message}`)
+    const { data: urlData } = supabaseAdmin.storage
+      .from("aijobs-cv")
+      .getPublicUrl(filePath)
+    logoUrl = urlData.publicUrl
+  }
+
+  const updates: Record<string, unknown> = {
     company_name: formData.get("company_name") as string,
     website: ((formData.get("website") as string) || null) as string | null,
     description: (formData.get("description") as string) || null,
@@ -63,6 +96,7 @@ export async function updateCompanyProfile(formData: FormData) {
     industry: (formData.get("industry") as string) || null,
     updated_at: new Date().toISOString(),
   }
+  if (logoUrl !== undefined) updates.logo_url = logoUrl
 
   const { error } = await supabase
     .from("company_profiles")

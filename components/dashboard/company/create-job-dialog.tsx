@@ -28,7 +28,7 @@ import { Plus } from "lucide-react"
 
 const SENIORITY_OPTIONS = [
   { value: "junior", label: "Junior" },
-  { value: "mid", label: "Mid-level" },
+  { value: "mid", label: "Mid" },
   { value: "senior", label: "Senior" },
   { value: "lead", label: "Lead" },
 ]
@@ -36,7 +36,7 @@ const SENIORITY_OPTIONS = [
 const LOCATION_TYPE_OPTIONS = [
   { value: "remote", label: "Remoto" },
   { value: "hybrid", label: "Híbrido" },
-  { value: "onsite", label: "Presencial" },
+  { value: "onsite", label: "On-site" },
 ]
 
 export function CreateJobDialog() {
@@ -68,36 +68,36 @@ export function CreateJobDialog() {
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
-          Nueva búsqueda
+          New job search
         </Button>
       </DialogTrigger>
       <DialogContent className="!max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Publicar búsqueda laboral</DialogTitle>
+          <DialogTitle>Publish job search</DialogTitle>
           <DialogDescription>
-            Completá los detalles del puesto. Los campos marcados con * son obligatorios.
+            Complete the details of the position. The fields marked with * are required.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Título del puesto *</Label>
+            <Label htmlFor="title">Position title *</Label>
             <Input
               id="title"
               name="title"
-              placeholder="Ej: Fullstack Developer"
+              placeholder="e.g. Fullstack Developer"
               required
             />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Descripción *</Label>
+            <Label htmlFor="description">Description *</Label>
             <Textarea
               id="description"
               name="description"
-              placeholder="Describí las responsabilidades, el equipo y el contexto del rol..."
+              placeholder="Describe the responsibilities, the team and the context of the role..."
               rows={5}
               required
             />
@@ -106,10 +106,10 @@ export function CreateJobDialog() {
           {/* Location type + location */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Modalidad</Label>
+              <Label>Location type</Label>
               <Select value={locationType} onValueChange={setLocationType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccioná..." />
+                  <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
                   {LOCATION_TYPE_OPTIONS.map((o) => (
@@ -121,11 +121,11 @@ export function CreateJobDialog() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location">Ubicación</Label>
+              <Label htmlFor="location">Location</Label>
               <Input
                 id="location"
                 name="location"
-                placeholder="Buenos Aires, Argentina"
+                placeholder="New York, USA"
                 disabled={locationType === "remote"}
               />
             </div>
@@ -134,10 +134,10 @@ export function CreateJobDialog() {
           {/* Seniority + years */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Seniority requerido</Label>
+              <Label>Seniority required</Label>
               <Select value={seniority} onValueChange={setSeniority}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccioná..." />
+                  <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
                   {SENIORITY_OPTIONS.map((o) => (
@@ -149,7 +149,7 @@ export function CreateJobDialog() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="years_required">Años de experiencia</Label>
+              <Label htmlFor="years_required">Years of experience</Label>
               <Input
                 id="years_required"
                 name="years_required"
@@ -163,7 +163,7 @@ export function CreateJobDialog() {
           {/* Salary */}
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="salary_min">Salario mínimo</Label>
+              <Label htmlFor="salary_min">Minimum salary</Label>
               <Input
                 id="salary_min"
                 name="salary_min"
@@ -173,7 +173,7 @@ export function CreateJobDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="salary_max">Salario máximo</Label>
+              <Label htmlFor="salary_max">Maximum salary</Label>
               <Input
                 id="salary_max"
                 name="salary_max"
@@ -183,7 +183,7 @@ export function CreateJobDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="currency">Moneda</Label>
+              <Label htmlFor="currency">Currency</Label>
               <Input
                 id="currency"
                 name="currency"
@@ -195,7 +195,7 @@ export function CreateJobDialog() {
 
           {/* Skills */}
           <div className="space-y-2">
-            <Label htmlFor="required_skills">Skills requeridos</Label>
+            <Label htmlFor="required_skills">Required skills</Label>
             <Input
               id="required_skills"
               name="required_skills"
@@ -203,7 +203,7 @@ export function CreateJobDialog() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="nice_to_have_skills">Skills opcionales</Label>
+            <Label htmlFor="nice_to_have_skills">Optional skills</Label>
             <Input
               id="nice_to_have_skills"
               name="nice_to_have_skills"
@@ -213,16 +213,16 @@ export function CreateJobDialog() {
 
           {error && (
             <p className="text-sm text-destructive">
-              {error instanceof Error ? error.message : "Ocurrió un error"}
+                {error instanceof Error ? error.message : "An error occurred"}
             </p>
           )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancelar
+              Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Publicando..." : "Publicar búsqueda"}
+              {isPending ? "Publishing..." : "Publish job search"}
             </Button>
           </DialogFooter>
         </form>

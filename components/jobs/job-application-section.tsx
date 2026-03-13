@@ -148,7 +148,7 @@ export function JobApplicationSection({ jobId }: JobApplicationSectionProps) {
               })}
             </p>
           )}
-          {statusConfig?.label?.toLowerCase() === "contacted" && (
+          {statusConfig?.label?.toLowerCase() === "contactado/a" && (
             <JobDetailsMessageLink jobId={jobId} />
           )}
         </CardContent>

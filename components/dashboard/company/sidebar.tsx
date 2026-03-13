@@ -88,9 +88,9 @@ export function CompanySidebar({ companyName, className }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="space-y-1 mt-4">
+      <div className="space-y-2 mt-4">
         <Separator className="mb-4" />
-        {bottomItems.map(({ href, label, icon: Icon }) => (
+        {/* {bottomItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
@@ -104,7 +104,7 @@ export function CompanySidebar({ companyName, className }: SidebarProps) {
             <Icon className="h-4 w-4 shrink-0" />
             {label}
           </Link>
-        ))}
+        ))} */}
         <LogoutButton />
       </div>
     </aside>

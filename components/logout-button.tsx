@@ -16,5 +16,5 @@ export function LogoutButton() {
     toast.success("Logout successful");
   };
 
-  return <Button onClick={logout}>Logout</Button>;
+  return <Button className="w-full" onClick={logout}>Logout</Button>;
 }
