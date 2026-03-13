@@ -1,109 +1,164 @@
 # HireMatch — AI-Powered Job Board
 
-## El problema que resuelve
+## Problem it solves
 
-Los job boards tradicionales muestran los mismos trabajos para todos los candidatos.
-HireMatch analiza el perfil técnico de cada candidato y rankea los empleos por 
-compatibilidad real, usando búsqueda vectorial semántica.
+Traditional job boards show the same jobs to every candidate.  
+HireMatch analyzes each candidate’s technical profile and ranks jobs by **real compatibility** using semantic vector search.
 
-## Cómo funciona el matching
+---
+
+# How matching works
+
 ```
-Candidato sube CV
-  → pdfparse extrae el texto del PDF
-  → gpt-4o-mini parsea estructura (skills, seniority, experiencia, idiomas)
-  → text-embedding-3-small genera vector de 1536 dimensiones
+Candidate uploads CV
+  → pdfparse extracts text from the PDF
+  → gpt-4o-mini parses the structure (skills, seniority, experience, languages)
+  → text-embedding-3-small generates a 1536-dimension vector
 
-Empresa crea empleo
-  → mismo proceso genera embedding del puesto
+Company creates a job
+  → the same process generates the job embedding
 
-Candidato entra a /jobs
-  → pgvector calcula similitud coseno entre su vector y todos los empleos activos
-  → Score 0-100 aparece en cada card, lista rankeada por compatibilidad
-  → Resultado cacheado en Redis por 1h
+Candidate visits /jobs
+  → pgvector computes cosine similarity between the candidate vector and all active jobs
+  → Score 0–100 appears on each card, list ranked by compatibility
+  → Result cached in Redis for 1h
 ```
 
-## Features
+---
 
-### Candidato
-- Registro y onboarding con subida de CV (PDF)
-- Parsing automático de CV con gpt-4o-mini (skills, seniority, experiencia, idiomas, educación)
-- Dashboard con resumen del perfil generado por IA
-- Edición de perfil (recalcula embedding automáticamente)
-- Lista de empleos rankeada por compatibilidad con score visual
-- Aplicar a empleos con carta de presentación
-- Ver estado de sus aplicaciones
-- Chat en tiempo real con empresas (Supabase Realtime)
+# Features
 
-### Empresa
-- Registro y onboarding de empresa
-- Crear y gestionar empleos (genera embedding al publicar)
-- Ver aplicaciones por empleo con datos del candidato
-- Generar score de compatibilidad por candidato on-demand
-- Cambiar estado de aplicaciones (recibida → revisión → contactado → contratado)
-- Chat en tiempo real con candidatos
-- Iniciar conversación directamente desde una aplicación
+## Candidate
 
-## Stack
+- Registration and onboarding with CV upload (PDF)
+- Automatic CV parsing with gpt-4o-mini (skills, seniority, experience, languages, education)
+- Dashboard with an AI-generated profile summary
+- Profile editing (automatically recalculates embedding)
+- Job list ranked by compatibility with a visual score
+- Apply to jobs with a cover letter
+- View application status
+- Real-time chat with companies (Supabase Realtime)
 
-| Capa | Tecnología |
+## Company
+
+- Company registration and onboarding
+- Create and manage job postings (embedding generated on publish)
+- View applications per job with candidate data
+- Generate compatibility score per candidate on demand
+- Change application status (received → reviewing → contacted → hired)
+- Real-time chat with candidates
+- Start a conversation directly from an application
+
+---
+
+# Stack
+
+| Layer | Technology |
 |------|-----------|
-| Framework | Next.js 15 App Router + TypeScript |
-| Base de datos | Supabase (PostgreSQL + pgvector) |
-| Auth | Supabase Auth con RLS |
-| Storage | Supabase Storage (CVs en PDF) |
+| Framework | Next.js 16 App Router + TypeScript |
+| Database | Supabase (PostgreSQL + pgvector) |
+| Auth | Supabase Auth with RLS |
+| Storage | Supabase Storage (PDF CVs) |
 | Realtime | Supabase Realtime |
 | AI | OpenAI gpt-4o-mini + text-embedding-3-small |
 | Cache | Redis (Upstash) |
 | UI | Tailwind CSS + Shadcn/ui |
-| Data fetching | TanStack Query v5 |
+| Data fetching | TanStack Query |
 
-## Arquitectura y decisiones técnicas
+---
 
-**SSR + TanStack Query con initialData**
-Las páginas son Server Components que fetchean datos en el servidor y los pasan 
-como `initialData` a TanStack. Resultado: sin skeleton de carga inicial, 
-datos disponibles en el primer render, TanStack maneja cache y mutations en cliente.
+# Architecture and technical decisions
 
-**Vector search con pgvector**
-Los embeddings se generan con `text-embedding-3-small` (1536 dimensiones).
-Las skills se repiten 3x en el texto del embedding para darles más peso semántico
-vs palabras genéricas del CV. La búsqueda usa similitud coseno via `match_jobs_for_candidate()`.
+## SSR + TanStack Query with `initialData`
 
-**Cache estratégico con Redis**
-Los resultados de vector search se cachean por usuario (TTL 1h).
-El cache se invalida cuando el candidato actualiza su CV o cuando una empresa 
-publica un nuevo empleo (`redis.keys("jobs:vector:*")` → delete all).
+Pages are Server Components that fetch data on the server and pass it  
+as `initialData` to TanStack.
 
-**Optimistic updates en el chat**
-Los mensajes aparecen inmediatamente con `opacity-60` mientras se guardan en DB.
-Si falla, el mensaje se elimina y el texto vuelve al input.
-Supabase Realtime reemplaza el optimista con el mensaje real de la DB.
+Result:
 
-**Cursor-based pagination**
-El chat carga los últimos 20 mensajes inicialmente.
-Al scrollear hacia arriba fetchea páginas anteriores usando `created_at` como cursor,
-restaurando la posición del scroll con `useLayoutEffect` para evitar saltos visuales.
+- No initial loading skeleton
+- Data available on the first render
+- TanStack handles caching and client mutations
 
-**Seguridad**
-- RLS en todas las tablas (conversations, messages, applications, matches, job_postings)
-- Verificación de ownership en cada Server Action
-- supabaseAdmin (service role) solo para operaciones que requieren bypass de RLS justificado
-- Rate limiting de actualizaciones de CV (1 vez cada 24hs)
+---
 
-## Estructura del proyecto
+## Vector search with pgvector
+
+Embeddings are generated using `text-embedding-3-small` (1536 dimensions).
+
+Skills are repeated **3x** in the embedding text to give them more semantic weight  
+compared to generic words in the CV.
+
+Search uses cosine similarity via `match_jobs_for_candidate()`.
+
+---
+
+## Strategic caching with Redis
+
+Vector search results are cached per user (**TTL: 1 hour**).
+
+Cache is invalidated when:
+
+- A candidate updates their CV
+- A company publishes a new job
+
+```
+redis.keys("jobs:vector:*") → delete all
+```
+
+---
+
+## Optimistic updates in chat
+
+Messages appear immediately while being saved in the database.
+
+If the request fails:
+
+- The message is removed
+- The text returns to the input
+
+Supabase Realtime then replaces the optimistic message with the real database message.
+
+---
+
+## Cursor-based pagination
+
+The chat initially loads the **latest 20 messages**.
+
+When scrolling upward:
+
+- Previous pages are fetched using `created_at` as the cursor
+- Scroll position is restored using `useLayoutEffect`
+- This prevents visual jumps
+
+---
+
+## Security
+
+- RLS on all tables (`conversations`, `messages`, `applications`, `matches`, `job_postings`)
+- Ownership verification in every Server Action
+- `supabaseAdmin` (service role) used only for justified RLS bypass operations
+- Rate limiting for CV updates (**once every 24 hours**)
+
+---
+
+# Project structure
+
 ```
 app/
-  (auth)/          → login, registro
-  onboarding/      → candidate (perfil + CV) / company
-  jobs/            → lista pública con vector search
+  (auth)/          → login, registration
+  onboarding/      → candidate (profile + CV) / company
+  jobs/            → public list with vector search
   dashboard/
-    candidate/     → resumen, CV, empleos, aplicaciones, mensajes
-    company/       → empleos, aplicaciones por empleo, mensajes
+    candidate/     → summary, CV, jobs, applications, messages
+    company/       → jobs, applications per job, messages
+
 lib/
   actions/         → Server Actions (candidate, company, job, message)
   ai/              → embeddings (generateEmbedding, buildCandidateText, buildJobText)
   supabase/        → client, server, admin
   hooks/           → useUnreadCount
+
 components/
   dashboard/
     candidate/     → ProfileSummary, EditProfileSheet, ConversationChat
@@ -111,25 +166,35 @@ components/
   ui/              → TagInput, UnreadBadge, ScoreBadge
 ```
 
-## Roadmap
+---
 
-### MVP pendiente
-- [ ] Editar job posting (regenera embedding)
-- [ ] Editar company profile
-- [ ] Estado de aplicación visible para candidato
-- [ ] Notificaciones de mensajes no leídos en el nav
+# Roadmap
+
+## Pending MVP
+
+- [ ] Edit job posting (regenerates embedding)
+- [ ] Edit company profile
+- [ ] Application status visible to candidate
+- [ ] Unread message notifications in the navigation
 - [ ] Landing page
-- [ ] Usuario demo para pruebas sin registro
+- [ ] Demo user for testing without registration
 
-### Post-MVP
-- [ ] AI Match Detail — breakdown del score con gpt-4o-mini
+---
+
+## Post-MVP
+
+- [ ] AI Match Detail — score breakdown with gpt-4o-mini  
       (strengths, gaps, explanation, recommendation)
-- [ ] Email notifications con Resend
-- [ ] Filtros en /jobs (remoto, seniority, skills)
-- [ ] Analytics para empresa (views, conversion rate por empleo)
-- [ ] Búsqueda semántica libre en /jobs
 
-## Variables de entorno
+- [ ] Email notifications with Resend
+- [ ] Filters on `/jobs` (remote, seniority, skills)
+- [ ] Company analytics (views, conversion rate per job)
+- [ ] Free semantic search on `/jobs`
+
+---
+
+# Environment variables
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=

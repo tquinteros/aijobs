@@ -12,7 +12,7 @@ export default async function CompanyMessagesPage() {
         <div className="px-4 py-3 border-b">
           <h2 className="font-semibold text-sm flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
-            Mensajes
+            Messages
           </h2>
         </div>
         <div className="flex-1 overflow-y-auto">
@@ -22,7 +22,7 @@ export default async function CompanyMessagesPage() {
 
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground">
         <MessageCircle className="h-12 w-12 opacity-20" />
-        <p className="text-sm">Seleccioná una conversación para ver los mensajes</p>
+        <p className="text-sm">Select a conversation to view the messages</p>
       </div>
     </div>
   )

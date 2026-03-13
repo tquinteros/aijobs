@@ -44,9 +44,9 @@ export function EditCompanyProfileSheet({ profile }: Props) {
         setSuccess(true)
         setOpen(false)
         setSuccess(false)
-        toast.success("Perfil de empresa actualizado correctamente")
+        toast.success("Company profile updated successfully")
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al guardar")
+        setError(err instanceof Error ? err.message : "Error saving the company profile")
       }
     })
   }
@@ -56,7 +56,7 @@ export function EditCompanyProfileSheet({ profile }: Props) {
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Pencil className="h-3.5 w-3.5" />
-          Editar empresa
+          Edit company profile
         </Button>
       </SheetTrigger>
 
@@ -68,7 +68,7 @@ export function EditCompanyProfileSheet({ profile }: Props) {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Nombre de la empresa */}
           <div className="space-y-1.5">
-            <Label htmlFor="company_name">Nombre de la empresa</Label>
+            <Label htmlFor="company_name">Company name</Label>
             <Input
               id="company_name"
               name="company_name"
@@ -80,7 +80,7 @@ export function EditCompanyProfileSheet({ profile }: Props) {
 
           {/* Sitio web */}
           <div className="space-y-1.5">
-            <Label htmlFor="website">Sitio web</Label>
+            <Label htmlFor="website">Website</Label>
             <Input
               id="website"
               name="website"
@@ -93,23 +93,23 @@ export function EditCompanyProfileSheet({ profile }: Props) {
 
           {/* Ubicación */}
           <div className="space-y-1.5">
-            <Label htmlFor="location">Ubicación</Label>
+            <Label htmlFor="location">Location</Label>
             <Input
               id="location"
               name="location"
-              placeholder="ej: Buenos Aires, Argentina"
-              defaultValue={profile.location ?? ""}
+              placeholder="e.g: Buenos Aires, Argentina"
+              defaultValue={profile.location ?? "e.g: Buenos Aires, Argentina"}
               disabled={isPending}
             />
           </div>
 
           {/* Industria */}
           <div className="space-y-1.5">
-            <Label htmlFor="industry">Industria</Label>
+            <Label htmlFor="industry">Industry</Label>
             <Input
               id="industry"
               name="industry"
-              placeholder="ej: Tecnología, Finanzas..."
+              placeholder="e.g: Technology, Finance..."
               defaultValue={profile.industry ?? ""}
               disabled={isPending}
             />
@@ -117,11 +117,11 @@ export function EditCompanyProfileSheet({ profile }: Props) {
 
           {/* Descripción */}
           <div className="space-y-1.5">
-            <Label htmlFor="description">Descripción</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               name="description"
-              placeholder="Contá brevemente qué hace la empresa"
+              placeholder="Describe briefly what the company does"
               defaultValue={profile.description ?? ""}
               disabled={isPending}
               rows={3}
@@ -140,7 +140,7 @@ export function EditCompanyProfileSheet({ profile }: Props) {
           {success && (
             <div className="flex items-center gap-2 text-green-700 text-sm p-3 rounded-lg border border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 shrink-0" />
-              Perfil de empresa actualizado correctamente
+              Company profile updated successfully
             </div>
           )}
 
@@ -152,16 +152,16 @@ export function EditCompanyProfileSheet({ profile }: Props) {
               onClick={() => setOpen(false)}
               disabled={isPending}
             >
-              Cancelar
+              Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Guardando...
+                  Saving...
                 </>
               ) : (
-                "Guardar cambios"
+                "Save changes"
               )}
             </Button>
           </div>

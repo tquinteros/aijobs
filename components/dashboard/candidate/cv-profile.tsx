@@ -11,12 +11,12 @@ type Step = "idle" | "uploading" | "extracting" | "analyzing" | "saving" | "done
 
 const stepMessages: Record<Step, string> = {
   idle: "",
-  uploading: "Subiendo archivo...",
-  extracting: "Extrayendo texto del PDF...",
-  analyzing: "La IA está analizando tu CV...",
-  saving: "Guardando tu perfil...",
-  done: "¡Todo listo!",
-  error: "Ocurrió un error",
+  uploading: "Uploading file...",
+  extracting: "Extracting text from PDF...",
+  analyzing: "The AI is analyzing your CV...",
+  saving: "Saving your profile...",
+  done: "All done!",
+  error: "An error occurred",
 }
 
 export default function CvProfile({ initialProfile }: { initialProfile: CandidateProfile }) {
@@ -75,11 +75,11 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
 
   function handleFile(selected: File) {
     if (selected.type !== "application/pdf") {
-      setErrorMsg("Solo se aceptan archivos PDF")
+      setErrorMsg("Only PDF files are accepted")
       return
     }
     if (selected.size > 5 * 1024 * 1024) {
-      setErrorMsg("El archivo no puede superar 5MB")
+      setErrorMsg("The file cannot exceed 5MB")
       return
     }
     setErrorMsg("")
@@ -110,9 +110,9 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
 
       setStep("saving")
       await uploadAndParseCV(formData)
-      toast.success("¡CV analizado correctamente!", {
+      toast.success("CV analyzed successfully!", {
         action: {
-          label: "Ir a dashboard",
+          label: "Go to dashboard",
           onClick: () => router.push("/dashboard/candidate"),
         },
       })
@@ -120,7 +120,7 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
       setStep("done")
     } catch (error) {
       setStep("error")
-      setErrorMsg(error instanceof Error ? error.message : "Error desconocido")
+      setErrorMsg(error instanceof Error ? error.message : "Unknown error")
     }
   }
 
@@ -131,18 +131,18 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
     <div className="max-w-lg mx-auto py-4">
       {/* Header */}
       <div className="mb-6 space-y-2">
-        <h1 className="text-2xl font-bold">Actualizá tu CV</h1>
+        <h1 className="text-2xl font-bold">Update your CV</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Subí una nueva versión de tu CV para que la IA vuelva a analizarlo y actualice tus embeddings.
+          Upload a new version of your CV for the AI to analyze it again and update your embeddings.
         </p>
         <p className="text-xs text-muted-foreground">
-          Esto reemplazará el CV anterior y actualizará tu perfil automáticamente.
+          This will replace the previous CV and update your profile automatically.
         </p>
         {isLocked && (
           <div className="mt-2 inline-flex items-center gap-2 rounded-md bg-amber-100 text-amber-900 px-3 py-1 text-xs">
             <Info className="h-3 w-3" />
             <span>
-              Solo podés actualizar tu CV una vez cada 24 horas. Podrás subir uno nuevo en{" "}
+              You can only update your CV once every 24 hours. You can upload a new one in{" "}
               <span className="font-semibold">{remainingLabel}</span>.
             </span>
           </div>
@@ -182,7 +182,7 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
                 onClick={(e) => { e.stopPropagation(); setFile(null) }}
                 className="text-xs text-muted-foreground hover:text-destructive mt-1"
               >
-                Cambiar archivo
+                Change file
               </button>
             )}
           </div>
@@ -190,10 +190,10 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
           <div className="flex flex-col items-center gap-3">
             <UploadCloud className="w-10 h-10 text-muted-foreground" />
             <div>
-              <p className="font-medium">Arrastrá tu nuevo CV acá</p>
-              <p className="text-sm text-muted-foreground">o hacé click para seleccionar</p>
+                <p className="font-medium">Drag your new CV here</p>
+              <p className="text-sm text-muted-foreground">or click to select</p>
             </div>
-            <p className="text-xs text-muted-foreground">PDF · Máximo 5MB</p>
+            <p className="text-xs text-muted-foreground">PDF · Maximum 5MB</p>
           </div>
         )}
       </div>
@@ -242,7 +242,7 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
           className="w-full mt-6 bg-primary text-primary-foreground rounded-md py-2 font-medium
             disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         >
-          Analizar nuevo CV →
+          Analyze new CV →
         </button>
       )}
     </div>

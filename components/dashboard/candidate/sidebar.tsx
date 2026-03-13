@@ -17,15 +17,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { LogoutButton } from "@/components/logout-button"
 
 const navItems = [
-  { href: "/dashboard/candidate", label: "Resumen", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/candidate/cv", label: "Mi CV", icon: FileText },
-  { href: "/dashboard/candidate/jobs", label: "Empleos", icon: Briefcase },
+  { href: "/dashboard/candidate", label: "Summary", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard/candidate/cv", label: "My CV", icon: FileText },
+  { href: "/dashboard/candidate/jobs", label: "Jobs", icon: Briefcase },
   // { href: "/dashboard/candidate/saved", label: "Guardados", icon: BookmarkCheck },
-  { href: "/dashboard/candidate/messages", label: "Mensajes", icon: MessageCircle },
+  { href: "/dashboard/candidate/messages", label: "Messages", icon: MessageCircle },
 ]
 
 const bottomItems = [
-  { href: "/dashboard/candidate/settings", label: "Configuración", icon: Settings },
+  { href: "/dashboard/candidate/settings", label: "Settings", icon: Settings },
 ]
 
 type SidebarProps = {
@@ -52,7 +52,7 @@ export function CandidateSidebar({ fullName, title, className }: SidebarProps) {
       {/* Brand */}
       <div className="px-3 mb-6">
         <Link href="/" className="text-lg font-bold tracking-tight">aijobs</Link>
-        <span className="text-muted-foreground text-sm block">Candidato</span>
+        <span className="text-muted-foreground text-sm block">Candidate</span>
       </div>
 
       {/* User info */}

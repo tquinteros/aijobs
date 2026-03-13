@@ -27,15 +27,15 @@ import {
 import { useRouter } from "next/navigation"
 
 const statusConfig: Record<JobPosting["status"], { label: string; variant: "default" | "secondary" | "destructive" }> = {
-  active: { label: "Activo", variant: "default" },
-  paused: { label: "Pausado", variant: "secondary" },
-  closed: { label: "Cerrado", variant: "destructive" },
+  active: { label: "Active", variant: "default" },
+  paused: { label: "Paused", variant: "secondary" },
+  closed: { label: "Closed", variant: "destructive" },
 }
 
 const locationTypeLabel: Record<string, string> = {
-  remote: "Remoto",
-  hybrid: "Híbrido",
-  onsite: "Presencial",
+  remote: "Remote",
+  hybrid: "Hybrid",
+  onsite: "Onsite",
 }
 
 const seniorityLabel: Record<string, string> = {
@@ -62,7 +62,7 @@ function JobCard({ job }: { job: JobPosting }) {
     job.salary_min && job.salary_max
       ? `${job.currency} ${job.salary_min.toLocaleString()} – ${job.salary_max.toLocaleString()}`
       : job.salary_min
-      ? `desde ${job.currency} ${job.salary_min.toLocaleString()}`
+      ? `from ${job.currency} ${job.salary_min.toLocaleString()}`
       : null
 
   return (
@@ -114,7 +114,7 @@ function JobCard({ job }: { job: JobPosting }) {
                     changeStatus({ id: job.id, status: "active" })
                   }}
                 >
-                  Activar
+                  Activate
                 </DropdownMenuItem>
               )}
               {job.status !== "paused" && (
@@ -124,7 +124,7 @@ function JobCard({ job }: { job: JobPosting }) {
                     changeStatus({ id: job.id, status: "paused" })
                   }}
                 >
-                  Pausar
+                  Pause
                 </DropdownMenuItem>
               )}
               {job.status !== "closed" && (
@@ -135,7 +135,7 @@ function JobCard({ job }: { job: JobPosting }) {
                     changeStatus({ id: job.id, status: "closed" })
                   }}
                 >
-                  Cerrar búsqueda
+                  Close job posting
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -154,7 +154,7 @@ function JobCard({ job }: { job: JobPosting }) {
           )}
           {job.years_required != null && (
             <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" /> {job.years_required}+ años
+              <Clock className="h-3.5 w-3.5" /> {job.years_required}+ years
             </span>
           )}
           {job.location && job.location_type !== "remote" && (
@@ -176,8 +176,8 @@ function JobCard({ job }: { job: JobPosting }) {
 
         <div className="flex items-center justify-between pt-1">
           <p className="text-xs text-muted-foreground">
-            Publicado el{" "}
-            {new Date(job.created_at).toLocaleDateString("es-AR", {
+            Published on{" "}
+            {new Date(job.created_at).toLocaleDateString("en-US", {
               day: "numeric",
               month: "long",
               year: "numeric",
@@ -185,7 +185,7 @@ function JobCard({ job }: { job: JobPosting }) {
           </p>
           <span className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground transition-colors">
             <Users className="h-3.5 w-3.5" />
-            Ver postulaciones
+            View applications
           </span>
         </div>
       </CardContent>
@@ -206,10 +206,10 @@ export function JobsList({ initialJobs }: { initialJobs: JobPosting[] }) {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Briefcase className="h-6 w-6" />
-            Búsquedas laborales
+            Job postings
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {jobs.length} búsqueda{jobs.length !== 1 ? "s" : ""} total{jobs.length !== 1 ? "es" : ""}
+            {jobs.length} job posting{jobs.length !== 1 ? "s" : ""} total{jobs.length !== 1 ? "s" : ""}
           </p>
         </div>
         <CreateJobDialog />
@@ -219,7 +219,7 @@ export function JobsList({ initialJobs }: { initialJobs: JobPosting[] }) {
         <div className="flex items-center gap-2 text-destructive p-4 rounded-lg border border-destructive/30 bg-destructive/10">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <p className="text-sm">
-            No se pudieron cargar las búsquedas. Intentá recargar la página.
+            Could not load the job postings. Please try reloading the page.
           </p>
         </div>
       )}
@@ -227,9 +227,9 @@ export function JobsList({ initialJobs }: { initialJobs: JobPosting[] }) {
       {jobs.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-lg">
           <Inbox className="h-10 w-10 text-muted-foreground mb-3" />
-          <h3 className="font-medium text-muted-foreground">No hay búsquedas publicadas</h3>
+          <h3 className="font-medium text-muted-foreground">No job postings published</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Publicá tu primera búsqueda laboral para encontrar candidatos.
+            Publish your first job posting to find candidates.
           </p>
           <CreateJobDialog />
         </div>

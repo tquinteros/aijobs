@@ -12,7 +12,7 @@ export default async function CandidateMessagesPage() {
         <div className="px-4 py-3 border-b shrink-0">
           <h2 className="font-semibold text-sm flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
-            Mensajes
+            Messages
           </h2>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto">
@@ -23,7 +23,7 @@ export default async function CandidateMessagesPage() {
       {/* Right panel: empty state — hidden on mobile */}
       <div className="hidden md:flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground min-w-0">
         <MessageCircle className="h-12 w-12 opacity-20" />
-        <p className="text-sm">Seleccioná una conversación para ver los mensajes</p>
+        <p className="text-sm">Select a conversation to view the messages</p>
       </div>
     </div>
   )

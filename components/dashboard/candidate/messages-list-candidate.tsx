@@ -77,7 +77,7 @@ export default function MessageListCandidate({ initialConversations }: { initial
   if (isError) {
     return (
       <p className="p-4 text-sm text-destructive">
-        No se pudieron cargar los mensajes.
+        Could not load the messages.
       </p>
     )
   }
@@ -86,8 +86,8 @@ export default function MessageListCandidate({ initialConversations }: { initial
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3 text-center p-6 text-muted-foreground">
         <MessageCircle className="h-10 w-10 opacity-30" />
-        <p className="text-sm">Todavía no tenés mensajes.</p>
-        <p className="text-xs">Las empresas podrán contactarte una vez que te postules a una oferta.</p>
+          <p className="text-sm">You have no messages yet.</p>
+        <p className="text-xs">Companies will be able to contact you once you apply to a job.</p>
       </div>
     )
   }
@@ -97,11 +97,11 @@ export default function MessageListCandidate({ initialConversations }: { initial
       {conversations.map((conv) => {
         const isActive = pathname === `/dashboard/candidate/messages/${conv.id}`
         const unread = conv.unread_candidate ?? 0
-        const company = conv.company_profiles?.company_name ?? "Empresa"
-        const job = conv.job_postings?.title ?? "Oferta"
-        const preview = conv.last_message_preview ?? "Sin mensajes aún"
+        const company = conv.company_profiles?.company_name ?? "Company"
+        const job = conv.job_postings?.title ?? "Job"
+        const preview = conv.last_message_preview ?? "No messages yet"
         const timeLabel = conv.last_message_at
-          ? new Date(conv.last_message_at).toLocaleDateString("es-AR", {
+          ? new Date(conv.last_message_at).toLocaleDateString("en-US", {
               day: "numeric",
               month: "short",
             })

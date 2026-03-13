@@ -113,7 +113,7 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
     return (
       <div className="flex items-center gap-2 text-destructive p-4 rounded-lg border border-destructive/30 bg-destructive/10">
         <AlertCircle className="h-5 w-5" />
-        <p className="text-sm">No se pudo cargar el perfil. Intentá recargar la página.</p>
+        <p className="text-sm">Could not load the profile. Please try reloading the page.</p>
       </div>
     )
   }
@@ -149,23 +149,23 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard
           icon={Clock}
-          label="Experiencia"
-          value={profile.years_of_experience != null ? `${profile.years_of_experience} años` : "Sin datos"}
+          label="Experience"
+          value={profile.years_of_experience != null ? `${profile.years_of_experience} years` : "No data"}
         />
         <StatCard
           icon={Briefcase}
-          label="Seniority"
+          label="Experience Level"
           value={senioryLabel[seniority]}
         />
         <StatCard
           icon={Languages}
-          label="Idiomas"
-          value={languages.length > 0 ? `${languages.length} idioma${languages.length > 1 ? "s" : ""}` : "Sin datos"}
+          label="Languages"
+          value={languages.length > 0 ? `${languages.length} language${languages.length > 1 ? "s" : ""}` : "No data"}
         />
         <StatCard
           icon={FileCheck}
           label="CV"
-          value={profile.cv_url ? "Subido" : "Sin subir"}
+          value={profile.cv_url ? "Uploaded" : "Not uploaded"}
         />
       </div>
 
@@ -175,7 +175,7 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              {parsed?.summary ? "Resumen generado por IA" : "Bio"}
+              {parsed?.summary ? "AI generated summary" : "Bio"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -190,7 +190,7 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
       {profile.skills?.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Habilidades técnicas</CardTitle>
+            <CardTitle className="text-base">Technical skills</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -209,7 +209,7 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Languages className="h-4 w-4" />
-                Idiomas
+                Languages
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -225,7 +225,7 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <GraduationCap className="h-4 w-4" />
-                Educación
+                Education
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -243,7 +243,7 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Briefcase className="h-4 w-4" />
-              Roles anteriores
+              Previous roles
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -260,8 +260,8 @@ export function ProfileSummary({ initialProfile }: { initialProfile: CandidatePr
         <>
           <Separator />
           <p className="text-xs text-muted-foreground">
-            CV analizado el{" "}
-            {new Date(profile.cv_parsed_at).toLocaleDateString("es-AR", {
+            CV analyzed on{" "}
+            {new Date(profile.cv_parsed_at).toLocaleDateString("en-US", {
               day: "numeric",
               month: "long",
               year: "numeric",

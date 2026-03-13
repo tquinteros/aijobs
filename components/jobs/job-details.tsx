@@ -28,28 +28,29 @@ import {
   JOB_DETAILS_QUERY_KEY,
   USER_APPLICATION_QUERY_KEY,
   type Application,
+  PublicJobListing,
 } from "@/lib/company"
 import { JobDetailsMessageLink } from "@/components/jobs/job-details-message-link"
 
 const locationTypeLabel: Record<string, string> = {
-  remote: "Remoto",
-  hybrid: "Híbrido",
-  onsite: "Presencial",
+  remote: "Remote",
+  hybrid: "Hybrid",
+  onsite: "Onsite",
 }
 
 const seniorityLabel: Record<string, string> = {
   junior: "Junior",
-  mid: "Mid-level",
+  mid: "Mid",
   senior: "Senior",
   lead: "Lead",
 }
 
 const applicationStatusConfig: Record<string, { label: string; className: string }> = {
-  applied: { label: "Postulación enviada", className: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800" },
-  reviewed: { label: "En revisión", className: "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800" },
-  contacted: { label: "Contactado/a", className: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800" },
-  rejected: { label: "No avanzó", className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800" },
-  hired: { label: "¡Contratado/a!", className: "bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800" },
+  applied: { label: "Application sent", className: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800" },
+  reviewed: { label: "In review", className: "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800" },
+  contacted: { label: "Contacted", className: "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800" },
+  rejected: { label: "Rejected", className: "bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800" },
+  hired: { label: "Hired", className: "bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800" },
 }
 
 function ApplicationCardSkeleton() {
@@ -68,14 +69,18 @@ function ApplicationCardSkeleton() {
   )
 }
 
-function ApplicationSection({ jobId }: { jobId: string }) {
+function ApplicationSection({ jobId, initialApplication }: {
+  jobId: string
+  initialApplication: Application | null
+}) {
+  const { data: application } = useQuery({
+    queryKey: USER_APPLICATION_QUERY_KEY(jobId),
+    queryFn: () => getUserApplication(jobId),
+    initialData: initialApplication ?? undefined,
+  })
   const queryClient = useQueryClient()
   const [coverLetter, setCoverLetter] = useState("")
 
-  const { data: application, isLoading } = useQuery({
-    queryKey: USER_APPLICATION_QUERY_KEY(jobId),
-    queryFn: () => getUserApplication(jobId),
-  })
 
   const { mutate: apply, isPending } = useMutation({
     mutationFn: () => applyToJob({ jobId, coverLetter }),
@@ -98,7 +103,7 @@ function ApplicationSection({ jobId }: { jobId: string }) {
     },
   })
 
-  if (isLoading) return <ApplicationCardSkeleton />
+  // if (isLoading) return <ApplicationCardSkeleton />
 
   const alreadyApplied = application != null
   const statusConfig = application?.status
@@ -109,12 +114,12 @@ function ApplicationSection({ jobId }: { jobId: string }) {
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Tu postulación</CardTitle>
+          <CardTitle className="text-base">Your application</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
-            <span className="font-medium">Ya te postulaste a este trabajo</span>
+            <span className="font-medium">You have already applied to this job</span>
           </div>
           {statusConfig && (
             <span
@@ -126,7 +131,7 @@ function ApplicationSection({ jobId }: { jobId: string }) {
           {application.cover_letter && (
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Carta de presentación
+                Cover letter
               </p>
               <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 leading-relaxed border">
                 {application.cover_letter}
@@ -135,7 +140,7 @@ function ApplicationSection({ jobId }: { jobId: string }) {
           )}
           {application.applied_at && (
             <p className="text-xs text-muted-foreground">
-              Enviada el{" "}
+              Sent on{" "}
               {new Date(application.applied_at).toLocaleDateString("es-AR", {
                 day: "numeric",
                 month: "long",
@@ -154,24 +159,24 @@ function ApplicationSection({ jobId }: { jobId: string }) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Postularse</CardTitle>
+        <CardTitle className="text-base">Apply</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="cover-letter" className="text-sm font-medium">
-            Carta de presentación{" "}
+            Cover letter{" "}
             <span className="font-normal text-muted-foreground">(opcional)</span>
           </Label>
           <Textarea
             id="cover-letter"
-            placeholder="Contale al equipo por qué sos el candidato ideal para este puesto..."
+            placeholder="Tell the team why you are the ideal candidate for this position..."
             value={coverLetter}
             onChange={(e) => setCoverLetter(e.target.value)}
             disabled={isPending}
             className="min-h-[120px] resize-none text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Una buena carta aumenta tus chances de ser contactado/a.
+            A good cover letter increases your chances of being contacted.
           </p>
         </div>
         <Button
@@ -182,12 +187,12 @@ function ApplicationSection({ jobId }: { jobId: string }) {
           {isPending ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Enviando...
+              Sending...
             </>
           ) : (
             <>
               <Send className="h-4 w-4" />
-              Postularse
+              Apply
             </>
           )}
         </Button>
@@ -223,30 +228,38 @@ function JobDetailsSkeleton() {
   )
 }
 
-export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
-  const { id } = useParams<{ id: string }>()
+type Props = {
+  id: string
+  initialJob: PublicJobListing | null
+  initialApplication: Application | null
+  canApply?: boolean
+}
+
+export const JobDetails = ({ id, initialJob, initialApplication, canApply = true }: Props) => {
+
   const router = useRouter()
 
-  const { data: job, isLoading, isError } = useQuery({
+  const { data: job, isError } = useQuery({
     queryKey: JOB_DETAILS_QUERY_KEY(id),
     queryFn: () => getJobById(id),
+    initialData: initialJob ?? undefined,
   })
 
-  if (isLoading) return <JobDetailsSkeleton />
+  // if (isLoading) return <JobDetailsSkeleton />
 
   if (isError || !job) {
     return (
       <div className="flex flex-col items-center gap-4 py-20 text-center">
         <AlertCircle className="h-12 w-12 text-destructive/50" />
         <div>
-          <p className="font-semibold">No se pudo cargar el trabajo</p>
+          <p className="font-semibold">Could not load the job</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Es posible que la búsqueda haya sido cerrada o no exista.
+            It is possible that the job search has been closed or does not exist.
           </p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-1.5" />
-          Volver
+          Back
         </Button>
       </div>
     )
@@ -254,9 +267,9 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
 
   const salaryText =
     job.salary_min != null && job.salary_max != null
-      ? `${job.currency} ${job.salary_min.toLocaleString()} – ${job.salary_max.toLocaleString()}`
+      ? `${job.currency} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
       : job.salary_min != null
-        ? `Desde ${job.currency} ${job.salary_min.toLocaleString()}`
+        ? `From ${job.currency} ${job.salary_min.toLocaleString()}`
         : null
 
   return (
@@ -269,7 +282,7 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
         onClick={() => router.back()}
       >
         <ArrowLeft className="h-4 w-4" />
-        Volver a búsquedas
+        Back to job searches
       </Button>
 
       {/* Header */}
@@ -277,7 +290,7 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
         <p className="text-sm text-muted-foreground flex items-center gap-1.5">
           <Building2 className="h-4 w-4 shrink-0" />
           <span className="font-medium text-foreground">
-            {job.company_profiles?.company_name ?? "Empresa"}
+            {job.company_profiles?.company_name ?? "Company"}
           </span>
           {job.company_profiles?.industry && (
             <span className="text-muted-foreground">· {job.company_profiles.industry}</span>
@@ -307,7 +320,7 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
         <div className="lg:col-span-2 space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Descripción del puesto</CardTitle>
+              <CardTitle className="text-base">Job description</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
@@ -319,7 +332,7 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
           {job.required_skills?.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Habilidades requeridas</CardTitle>
+                <CardTitle className="text-base">Required skills</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -336,7 +349,7 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
           {job.nice_to_have_skills?.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Habilidades deseables</CardTitle>
+                <CardTitle className="text-base">Nice to have skills</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -356,7 +369,7 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
           {/* Job meta */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Detalles</CardTitle>
+              <CardTitle className="text-base">Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {salaryText && (
@@ -379,14 +392,14 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
               {job.years_required != null && (
                 <div className="flex items-start gap-2.5 text-sm">
                   <Clock className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                  <span>{job.years_required}+ años de experiencia</span>
+                  <span>{job.years_required}+ years of experience</span>
                 </div>
               )}
               <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>
-                  Publicado el{" "}
-                  {new Date(job.created_at).toLocaleDateString("es-AR", {
+                  Published on{" "}
+                  {new Date(job.created_at).toLocaleDateString("en-US", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
@@ -396,7 +409,7 @@ export const JobDetails = ({ canApply = true }: { canApply?: boolean }) => {
             </CardContent>
           </Card>
 
-          {canApply && <ApplicationSection jobId={id} />}
+          {canApply && <ApplicationSection jobId={id} initialApplication={initialApplication} />}
         </div>
       </div>
     </div>

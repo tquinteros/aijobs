@@ -10,14 +10,14 @@ import { MapPin, Clock, DollarSign, Building2, AlertCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 const locationTypeLabel: Record<string, string> = {
-  remote: "Remoto",
-  hybrid: "Híbrido",
-  onsite: "Presencial",
+  remote: "Remote",
+  hybrid: "Hybrid",
+  onsite: "Onsite",
 }
 
 const seniorityLabel: Record<string, string> = {
-  junior: "Junior",
-  mid: "Mid-level",
+    junior: "Junior",
+  mid: "Mid",
   senior: "Senior",
   lead: "Lead",
 }
@@ -25,10 +25,10 @@ const seniorityLabel: Record<string, string> = {
 function ScoreBadge({ score }: { score: number }) {
   const config =
     score >= 70
-      ? { label: "Fuerte match", className: "bg-green-100 text-green-700 border-green-200" }
+      ? { label: "Strong match", className: "bg-green-100 text-green-700 border-green-200" }
       : score >= 50
-        ? { label: "Match moderado", className: "bg-yellow-100 text-yellow-700 border-yellow-200" }
-        : { label: "Match bajo", className: "bg-red-100 text-red-700 border-red-200" }
+        ? { label: "Moderate match", className: "bg-yellow-100 text-yellow-700 border-yellow-200" }
+        : { label: "Low match", className: "bg-red-100 text-red-700 border-red-200" }
 
   return (
     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${config.className}`}>
@@ -38,13 +38,13 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 function JobCard({ job }: { job: PublicJobListing }) {
-  const companyName = job.company_profiles?.company_name ?? "Empresa"
+  const companyName = job.company_profiles?.company_name ?? "Company"
   const router = useRouter()
   const salaryText =
     job.salary_min != null && job.salary_max != null
-      ? `${job.currency} ${job.salary_min.toLocaleString()} – ${job.salary_max.toLocaleString()}`
+      ? `${job.currency} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
       : job.salary_min != null
-        ? `Desde ${job.currency} ${job.salary_min.toLocaleString()}`
+        ? `From ${job.currency} ${job.salary_min.toLocaleString()}`
         : null
 
   return (
@@ -96,7 +96,7 @@ function JobCard({ job }: { job: PublicJobListing }) {
           {job.years_required != null && (
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              {job.years_required}+ años
+              {job.years_required}+ years
             </span>
           )}
           {job.location && job.location_type !== "remote" && (
@@ -115,14 +115,14 @@ function JobCard({ job }: { job: PublicJobListing }) {
             ))}
             {job.required_skills.length > 5 && (
               <span className="text-xs text-muted-foreground">
-                +{job.required_skills.length - 5} más
+                +{job.required_skills.length - 5} more
               </span>
             )}
           </div>
         )}
         <p className="text-xs text-muted-foreground pt-1">
-          Publicado{" "}
-          {new Date(job.created_at).toLocaleDateString("es-AR", {
+          Published on{" "}
+          {new Date(job.created_at).toLocaleDateString("en-US", {
             day: "numeric",
             month: "short",
             year: "numeric",
@@ -152,11 +152,11 @@ export function JobsList() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Búsquedas laborales</h1>
+        <h1 className="text-2xl font-bold">Job searches</h1>
         <p className="text-muted-foreground mt-1">
           {!isLoading && jobs != null
-            ? `${jobs.length} búsqueda${jobs.length !== 1 ? "s" : ""} activa${jobs.length !== 1 ? "s" : ""}`
-            : "Cargando..."}
+            ? `${jobs.length} job search${jobs.length !== 1 ? "s" : ""} active${jobs.length !== 1 ? "s" : ""}`
+            : "Loading..."}
         </p>
       </div>
 
@@ -165,13 +165,13 @@ export function JobsList() {
       {isError && (
         <div className="flex items-center gap-2 text-destructive p-4 rounded-lg border border-destructive/30 bg-destructive/10">
           <AlertCircle className="h-5 w-5 shrink-0" />
-          <p className="text-sm">No se pudieron cargar las búsquedas. Intentá de nuevo más tarde.</p>
+          <p className="text-sm">Could not load the job searches. Please try again later.</p>
         </div>
       )}
 
       {!isLoading && !isError && jobs?.length === 0 && (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
-          <p className="text-muted-foreground">No hay búsquedas publicadas por el momento.</p>
+          <p className="text-muted-foreground">No job searches published yet.</p>
         </div>
       )}
 

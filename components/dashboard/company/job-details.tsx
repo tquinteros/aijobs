@@ -68,27 +68,27 @@ const applicationStatusConfig: Record<
   { label: string; className: string }
 > = {
   applied: {
-    label: "Nueva",
+    label: "New",
     className:
       "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
   },
   reviewed: {
-    label: "En revisión",
+    label: "In review",
     className:
       "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",
   },
   contacted: {
-    label: "Contactado/a",
+    label: "Contacted",
     className:
       "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800",
   },
   rejected: {
-    label: "Rechazado/a",
+    label: "Rejected",
     className:
       "bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
   },
   hired: {
-    label: "Contratado/a",
+    label: "Hired",
     className:
       "bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
   },
@@ -160,12 +160,12 @@ function ApplicationCard({
     mutationFn: () =>
       generateMatchScore(application.candidate_id, jobId, application.id),
     onSuccess: (score) => {
-      toast.success(`Score generado: ${score}%`)
+      toast.success(`Score generated: ${score}%`)
       queryClient.invalidateQueries({
         queryKey: COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY(jobId),
       })
     },
-    onError: () => toast.error("No se pudo generar el score"),
+    onError: () => toast.error("Could not generate the score"),
   })
 
   const score = application.match?.score ?? null
@@ -174,26 +174,26 @@ function ApplicationCard({
     mutationFn: (status: ApplicationStatus) =>
       updateApplicationStatus(application.id, jobId, status),
     onSuccess: (_data, status) => {
-      toast.success(`Estado actualizado a "${applicationStatusConfig[status].label}"`)
+      toast.success(`Status updated to "${applicationStatusConfig[status].label}"`)
       queryClient.invalidateQueries({
         queryKey: COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY(jobId),
       })
     },
     onError: () => {
-      toast.error("No se pudo actualizar el estado")
+      toast.error("Could not update the status")
     },
   })
 
   const { mutate: contactCandidate, isPending: isStartingChat } = useMutation({
     mutationFn: async () => {
       if (!application.candidate_id) {
-        throw new Error("Candidato inválido")
+        throw new Error("Invalid candidate")
       }
       const conversationId = await getOrCreateConversation(application.candidate_id, jobId)
       router.push(`/dashboard/company/messages/${conversationId}`)
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "No se pudo iniciar el chat")
+      toast.error(error instanceof Error ? error.message : "Could not start the chat")
     },
   })
 
@@ -382,14 +382,14 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
   const { mutate: changeJobStatus, isPending: isChangingStatus } = useMutation({
     mutationFn: (status: JobPosting["status"]) => updateJobStatus(jobId, status),
     onSuccess: (_data, status) => {
-      toast.success(`Búsqueda ${jobStatusConfig[status].label.toLowerCase()}`)
+      toast.success(`Job ${jobStatusConfig[status].label.toLowerCase()}`)
       queryClient.invalidateQueries({
         queryKey: COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY(jobId),
       })
       queryClient.invalidateQueries({ queryKey: JOB_POSTINGS_QUERY_KEY })
     },
     onError: () => {
-      toast.error("No se pudo cambiar el estado")
+      toast.error("Could not change the status")
     },
   })
 
@@ -400,14 +400,14 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
       <div className="flex flex-col items-center gap-4 py-20 text-center">
         <AlertCircle className="h-12 w-12 text-destructive/50" />
         <div>
-          <p className="font-semibold">No se pudo cargar la búsqueda</p>
+          <p className="font-semibold">Could not load the job</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Es posible que no tengas acceso o que haya sido eliminada.
+            It is possible that you do not have access or that it has been deleted.
           </p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-1.5" />
-          Volver
+          Back
         </Button>
       </div>
     )
@@ -417,9 +417,9 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
 
   const salaryText =
     job.salary_min != null && job.salary_max != null
-      ? `${job.currency} ${job.salary_min.toLocaleString()} – ${job.salary_max.toLocaleString()}`
+      ? `${job.currency} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
       : job.salary_min != null
-        ? `Desde ${job.currency} ${job.salary_min.toLocaleString()}`
+        ? `From ${job.currency} ${job.salary_min.toLocaleString()}`
         : null
 
   const currentStatus = jobStatusConfig[job.status]
@@ -478,19 +478,19 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
               ) : (
                 <Briefcase className="h-4 w-4" />
               )}
-              Cambiar estado
+              Change status
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {job.status !== "active" && (
               <DropdownMenuItem onClick={() => changeJobStatus("active")}>
-                Activar búsqueda
+                Activate job
               </DropdownMenuItem>
             )}
             {job.status !== "paused" && (
               <DropdownMenuItem onClick={() => changeJobStatus("paused")}>
-                Pausar búsqueda
+                Pause job
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -499,7 +499,7 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
                 className="text-destructive"
                 onClick={() => changeJobStatus("closed")}
               >
-                Cerrar búsqueda
+                Close job
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -514,7 +514,7 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
         <div className="lg:col-span-2 space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Descripción del puesto</CardTitle>
+              <CardTitle className="text-base">Job description</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
@@ -526,7 +526,7 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
           {job.required_skills?.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Habilidades requeridas</CardTitle>
+                <CardTitle className="text-base">Required skills</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -543,7 +543,7 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
           {job.nice_to_have_skills?.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Habilidades deseables</CardTitle>
+                <CardTitle className="text-base">Nice to have skills</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
@@ -562,7 +562,7 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
         <div className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Detalles</CardTitle>
+              <CardTitle className="text-base">Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {salaryText && (
@@ -585,14 +585,14 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
               {job.years_required != null && (
                 <div className="flex items-start gap-2.5 text-sm">
                   <Clock className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                  <span>{job.years_required}+ años de experiencia</span>
+                  <span>{job.years_required}+ years of experience</span>
                 </div>
               )}
               <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>
-                  Publicado el{" "}
-                  {new Date(job.created_at).toLocaleDateString("es-AR", {
+                      Published on{" "}
+                    {new Date(job.created_at).toLocaleDateString("en-US", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
@@ -608,17 +608,17 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Resumen de postulaciones
+                  Applications summary
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {(
                   [
-                    ["applied", "Nuevas"],
-                    ["reviewed", "En revisión"],
-                    ["contacted", "Contactados/as"],
-                    ["hired", "Contratados/as"],
-                    ["rejected", "Rechazados/as"],
+                    ["applied", "New"],
+                    ["reviewed", "In review"],
+                    ["contacted", "Contacted"],
+                    ["hired", "Hired"],
+                    ["rejected", "Rejected"],
                   ] as [ApplicationStatus, string][]
                 )
                   .filter(([key]) => applicationsByStatus[key] > 0)
@@ -645,7 +645,7 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-xl font-semibold">
-            Postulaciones
+            Applications
             {applications.length > 0 && (
               <span className="ml-2 text-base font-normal text-muted-foreground">
                 ({applications.length})
@@ -657,9 +657,9 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
         {applications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed rounded-lg text-center">
             <Inbox className="h-10 w-10 text-muted-foreground mb-3" />
-            <p className="font-medium text-muted-foreground">Sin postulaciones aún</p>
+            <p className="font-medium text-muted-foreground">No applications yet</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Los candidatos que se postulen aparecerán aquí.
+              Candidates who apply will appear here.
             </p>
           </div>
         ) : (

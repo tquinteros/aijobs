@@ -264,11 +264,11 @@ export default function ConversationChatCompany({
         }
       )
       setText(trimmed)
-      setSendError(err instanceof Error ? err.message : "Error al enviar el mensaje")
+      setSendError(err instanceof Error ? err.message : "Error sending the message")
     }
   }
 
-  const candidateName = conv?.candidate_profiles?.full_name ?? "Candidato/a"
+  const candidateName = conv?.candidate_profiles?.full_name ?? "Candidate"
 
   return (
     <div className="flex flex-col h-full">
@@ -295,7 +295,7 @@ export default function ConversationChatCompany({
 
         {messages.length === 0 && (
           <p className="text-xs text-center text-muted-foreground py-8">
-            No hay mensajes aún. Enviá el primer mensaje para contactar a la persona candidata.
+            No messages yet. Send the first message to contact the candidate.
           </p>
         )}
 
@@ -305,11 +305,11 @@ export default function ConversationChatCompany({
           const msgDate = msg.created_at.slice(0, 10)
           const prevDate = messages[i - 1]?.created_at.slice(0, 10)
           const showDayDivider = prevDate !== msgDate
-          const time = new Date(msg.created_at).toLocaleTimeString("es-AR", {
+          const time = new Date(msg.created_at).toLocaleTimeString("en-US", {
             hour: "2-digit",
             minute: "2-digit",
           })
-          const dateLabel = new Date(msg.created_at).toLocaleDateString("es-AR", {
+          const dateLabel = new Date(msg.created_at).toLocaleDateString("en-US", {
             day: "numeric",
             month: "long",
           })
@@ -358,7 +358,7 @@ export default function ConversationChatCompany({
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Escribí un mensaje..."
+            placeholder="Write a message..."
             className="flex-1 rounded-full border bg-background px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {

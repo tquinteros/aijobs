@@ -26,7 +26,7 @@ export default async function ConversationPage({
         <div className="px-4 py-3 border-b">
           <h2 className="font-semibold text-sm flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
-            Mensajes
+            Messages
           </h2>
         </div>
         <div className="flex-1 overflow-y-auto">

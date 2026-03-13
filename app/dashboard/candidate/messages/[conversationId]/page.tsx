@@ -20,8 +20,8 @@ export default async function ConversationPage({
       <aside className="hidden md:flex md:w-80 shrink-0 border-r flex-col min-h-0">
         <div className="px-4 py-3 border-b shrink-0">
           <h2 className="font-semibold text-sm flex items-center gap-2">
-            <MessageCircle className="h-4 w-4" />
-            Mensajes
+            <MessageCircle className="h-4 w-4" /> 
+            Messages
           </h2>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto">
@@ -37,7 +37,7 @@ export default async function ConversationPage({
             className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver a mensajes
+            Back to messages
           </Link>
         </div>
         <div className="flex-1 min-h-0 flex flex-col">

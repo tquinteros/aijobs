@@ -36,7 +36,7 @@ export function CompanyProfileSummary({ initialProfile }: { initialProfile: Comp
     return (
       <div className="flex items-center gap-2 text-destructive p-4 rounded-lg border border-destructive/30 bg-destructive/10">
         <AlertCircle className="h-5 w-5" />
-        <p className="text-sm">No se pudo cargar el perfil de empresa. Intentá recargar la página.</p>
+        <p className="text-sm">Could not load the company profile. Please try reloading the page.</p>
       </div>
     )
   }
@@ -82,7 +82,7 @@ export function CompanyProfileSummary({ initialProfile }: { initialProfile: Comp
       {profile.description && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Descripción de la empresa</CardTitle>
+            <CardTitle className="text-base">Company description</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -95,7 +95,7 @@ export function CompanyProfileSummary({ initialProfile }: { initialProfile: Comp
       {/* Meta */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Detalles</CardTitle>
+          <CardTitle className="text-base">Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div className="flex flex-wrap gap-2">
@@ -115,12 +115,12 @@ export function CompanyProfileSummary({ initialProfile }: { initialProfile: Comp
             <>
               <Separator className="my-2" />
               <p className="text-xs text-muted-foreground">
-                Perfil actualizado el{" "}
-                {new Date(profile.updated_at).toLocaleDateString("es-AR", {
+                Profile updated on{" "}
+                `{new Date(profile.updated_at).toLocaleDateString("en-US", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
-                })}
+                })}`
               </p>
             </>
           )}

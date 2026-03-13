@@ -171,7 +171,7 @@ export async function applyToJob({
   const userId = authData?.claims?.sub
 
   if (!userId) {
-    return { success: false, error: "Debés iniciar sesión para postularte." }
+    return { success: false, error: "You must be logged in to apply to this job." }
   }
 
   const { error } = await supabase.from("applications").insert({
@@ -183,7 +183,7 @@ export async function applyToJob({
 
   if (error) {
     if (error.code === "23505") {
-      return { success: false, error: "Ya te postulaste a este trabajo." }
+      return { success: false, error: "You have already applied to this job." }
     }
     return { success: false, error: error.message }
   }
@@ -196,7 +196,7 @@ export async function getCandidateApplications(): Promise<CandidateApplicationWi
 
   const { data: authData, error: authError } = await supabase.auth.getClaims()
   if (authError || !authData?.claims?.sub) {
-    throw new Error("Debés iniciar sesión para ver tus postulaciones.")
+    throw new Error("You must be logged in to see your applications.")
   }
   const userId = authData.claims.sub as string
 

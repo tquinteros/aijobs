@@ -31,15 +31,15 @@ function ApplicationsSkeleton() {
 function statusLabel(status: CandidateApplicationWithJob["status"]) {
   switch (status) {
     case "applied":
-      return "Postulado"
+      return "Applied"
     case "reviewed":
-      return "En revisión"
+      return "Reviewed"
     case "contacted":
-      return "Contactado"
+      return "Contacted"
     case "rejected":
-      return "Rechazado"
+      return "Rejected"
     case "hired":
-      return "Contratado"
+      return "Hired"
     default:
       return status
   }
@@ -73,7 +73,7 @@ export default function ApplicationsCandidate({ initialApplications }: { initial
   if (isError || !data) {
     return (
       <p className="text-sm text-destructive">
-        No se pudieron cargar tus postulaciones. Intentá recargar la página.
+        Could not load your applications. Please try reloading the page.
       </p>
     )
   }
@@ -81,9 +81,9 @@ export default function ApplicationsCandidate({ initialApplications }: { initial
   if (data.length === 0) {
     return (
       <div className="text-sm text-muted-foreground">
-        Todavía no te postulaste a ningún empleo. Explora las oportunidades en la pestaña{" "}
+          You have not applied to any jobs yet. Explore the opportunities in the tab{" "}
         <Link href="/dashboard/candidate/jobs" className="text-primary underline-offset-2 hover:underline">
-          Empleos
+          Jobs
         </Link>.
       </div>
     )
@@ -95,7 +95,7 @@ export default function ApplicationsCandidate({ initialApplications }: { initial
         const job = app.job_postings
         if (!job) return null
         const company = job.company_profiles
-        const appliedDate = new Date(app.applied_at).toLocaleDateString("es-AR", {
+        const appliedDate = new Date(app.applied_at).toLocaleDateString("en-US", {
           day: "numeric",
           month: "short",
           year: "numeric",
@@ -123,15 +123,15 @@ export default function ApplicationsCandidate({ initialApplications }: { initial
             <CardContent className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <CalendarClock className="h-3.5 w-3.5" />
-                <span>Postulado el {appliedDate}</span>
+                <span>Applied on {appliedDate}</span>
               </div>
               {job.location_type && (
                 <div className="flex items-center gap-2">
                   <MapPin className="h-3.5 w-3.5" />
                   <span>
-                    {job.location_type === "remote" && "Remoto"}
-                    {job.location_type === "hybrid" && "Híbrido"}
-                    {job.location_type === "onsite" && "Presencial"}
+                    {job.location_type === "remote" && "Remote"}
+                    {job.location_type === "hybrid" && "Hybrid"}
+                    {job.location_type === "onsite" && "Onsite"}
                     {job.location ? ` · ${job.location}` : ""}
                   </span>
                 </div>
@@ -145,7 +145,7 @@ export default function ApplicationsCandidate({ initialApplications }: { initial
                   ))}
                   {job.required_skills.length > 4 && (
                     <span className="text-xs text-muted-foreground">
-                      +{job.required_skills.length - 4} más
+                      +{job.required_skills.length - 4} more
                     </span>
                   )}
                 </div>
@@ -155,7 +155,7 @@ export default function ApplicationsCandidate({ initialApplications }: { initial
                   href={`/jobs/${job.id}`}
                   className="text-xs text-primary font-medium hover:underline underline-offset-2"
                 >
-                  Ver detalle del empleo
+                  View job details
                 </Link>
               </div>
             </CardContent>
