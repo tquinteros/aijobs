@@ -3,6 +3,7 @@ import { CompanyDashboardShellClient } from "./dashboard-shell-client"
 
 type Company = {
   company_name: string
+  logo_url: string
 }
 
 export async function CompanyDashboardShell({
@@ -12,7 +13,7 @@ export async function CompanyDashboardShell({
 }) {
   const company = await requireCompany()
   return (
-    <CompanyDashboardShellClient companyName={company.company_name}>
+    <CompanyDashboardShellClient companyName={company.company_name} logoUrl={company.logo_url}>
       {children}
     </CompanyDashboardShellClient>
   )

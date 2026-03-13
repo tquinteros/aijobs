@@ -9,7 +9,7 @@ export async function requireCompany() {
 
   const { data: company } = await supabase
     .from("company_profiles")
-    .select("company_name")
+    .select("company_name, logo_url")
     .eq("id", session.userId)
     .single()
 

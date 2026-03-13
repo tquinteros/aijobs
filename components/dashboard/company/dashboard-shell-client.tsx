@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button"
 type CompanyDashboardShellClientProps = {
   children: ReactNode
   companyName: string
+  logoUrl: string
 }
 
 export function CompanyDashboardShellClient({
   children,
   companyName,
+  logoUrl,
 }: CompanyDashboardShellClientProps) {
   return (
     <div className="flex h-screen flex-col overflow-hidden md:flex-row">
@@ -35,6 +37,7 @@ export function CompanyDashboardShellClient({
             <DrawerTitle hidden></DrawerTitle>
             <CompanySidebar
               companyName={companyName}
+              logoUrl={logoUrl}
               className="min-h-[60vh]"
             />
           </DrawerContent>
@@ -47,7 +50,7 @@ export function CompanyDashboardShellClient({
 
       {/* Desktop sidebar */}
       <div className="hidden md:block">
-        <CompanySidebar companyName={companyName} />
+        <CompanySidebar companyName={companyName} logoUrl={logoUrl} />
       </div>
 
       {/* Main content */}

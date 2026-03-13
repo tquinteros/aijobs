@@ -12,9 +12,10 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { LogoutButton } from "@/components/logout-button"
+import Image from "next/image"
 
 const navItems = [
   { href: "/dashboard/company", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -29,10 +30,11 @@ const bottomItems = [
 
 type SidebarProps = {
   companyName: string
+  logoUrl: string
   className?: string
 }
 
-export function CompanySidebar({ companyName, className }: SidebarProps) {
+export function CompanySidebar({ companyName, logoUrl, className }: SidebarProps) {
   const pathname = usePathname()
 
   const isActive = (href: string, exact?: boolean) =>
@@ -48,16 +50,12 @@ export function CompanySidebar({ companyName, className }: SidebarProps) {
   return (
     <aside className={cn("flex flex-col w-64 min-h-screen border-r bg-card px-3 py-5 shrink-0", className)}>
       <div className="px-3 mb-6">
-        <span className="text-lg font-bold tracking-tight">aijobs</span>
+        <Link href="/" className="text-lg font-bold tracking-tight">aijobs</Link>
         <span className="text-muted-foreground text-sm block">Empresa</span>
       </div>
 
       <div className="flex items-center gap-3 px-3 mb-6">
-        <Avatar className="h-9 w-9">
-          <AvatarFallback className="text-xs font-semibold">
-            <Building2 className="h-4 w-4" />
-          </AvatarFallback>
-        </Avatar>
+        <Image className="rounded-full" src={logoUrl} alt={companyName} width={36} height={36} />
         <div className="min-w-0">
           <p className="text-sm font-medium truncate">{companyName}</p>
           {/* <p className="text-xs text-muted-foreground truncate">{industry ?? "Sin industria"}</p> */}
