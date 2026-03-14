@@ -7,7 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MapPin, Clock, DollarSign, Building2, AlertCircle } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { applyFilters, parseFiltersFromParams } from "@/lib/job-filters"
+import { useMemo } from "react"
+import { JobsFilters } from "./job-filters"
 
 const locationTypeLabel: Record<string, string> = {
   remote: "Remote",
@@ -16,7 +19,7 @@ const locationTypeLabel: Record<string, string> = {
 }
 
 const seniorityLabel: Record<string, string> = {
-    junior: "Junior",
+  junior: "Junior",
   mid: "Mid",
   senior: "Senior",
   lead: "Lead",
@@ -133,7 +136,7 @@ function JobCard({ job }: { job: PublicJobListing }) {
   )
 }
 
-function JobsListSkeleton() {
+export function JobsListSkeleton() {
   return (
     <div className="space-y-4">
       {[...Array(4)].map((_, i) => (
@@ -143,19 +146,37 @@ function JobsListSkeleton() {
   )
 }
 
-export function JobsList() {
+export function JobsList({ initialJobs }: { initialJobs: PublicJobListing[] }) {
   const { data: jobs, isLoading, isError } = useQuery({
     queryKey: PUBLIC_JOBS_QUERY_KEY,
     queryFn: getPublicJobs,
+    initialData: initialJobs,
   })
+
+  const searchParams = useSearchParams()
+  const filters = useMemo(
+    () => parseFiltersFromParams(searchParams),
+    [searchParams]
+  )
+
+  const filteredJobs = useMemo(
+    () => applyFilters(initialJobs, filters),
+    [jobs, filters]
+  )
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Job searches</h1>
+        <JobsFilters
+          filters={filters}
+          totalJobs={initialJobs.length}
+          filteredCount={filteredJobs.length}
+        />
+
         <p className="text-muted-foreground mt-1">
-          {!isLoading && jobs != null
-            ? `${jobs.length} job search${jobs.length !== 1 ? "s" : ""} active${jobs.length !== 1 ? "s" : ""}`
+          {!isLoading && initialJobs != null
+            ? `${initialJobs.length} job search${initialJobs.length !== 1 ? "s" : ""} active${initialJobs.length !== 1 ? "s" : ""}`
             : "Loading..."}
         </p>
       </div>
@@ -169,15 +190,21 @@ export function JobsList() {
         </div>
       )}
 
-      {!isLoading && !isError && jobs?.length === 0 && (
+      {!isLoading && !isError && initialJobs.length === 0 && (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <p className="text-muted-foreground">No job searches published yet.</p>
         </div>
       )}
 
-      {!isLoading && jobs != null && jobs.length > 0 && (
+      {!isLoading && initialJobs != null && initialJobs.length > 0 && filteredJobs.length === 0 && (
+        <div className="text-center py-16 border-2 border-dashed rounded-lg">
+          <p className="text-muted-foreground">No jobs match your filters. Try adjusting or clearing them.</p>
+        </div>
+      )}
+
+      {!isLoading && initialJobs != null && filteredJobs.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {jobs.map((job) => (
+          {filteredJobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}
         </div>
