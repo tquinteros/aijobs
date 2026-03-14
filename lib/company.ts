@@ -78,6 +78,27 @@ export type Application = {
 export const COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY = (jobId: string) =>
   ["companyJobDetails", jobId] as const
 
+
+
+export type MatchDetail = {
+  score: number
+  breakdown: {
+    technical_skills: number
+    experience_level: number
+    education: number
+  }
+  strengths: string[]
+  gaps: string[]
+  explanation: string
+  recommendation: "strong_yes" | "yes" | "maybe" | "no"
+}
+
+export type MatchBreakdown = {
+  technical_skills: number
+  experience_level: number
+  education: number
+}
+
 export type JobApplicationForCompany = {
   id: string
   candidate_id: string
@@ -85,10 +106,11 @@ export type JobApplicationForCompany = {
   cover_letter: string | null
   applied_at: string
   updated_at: string
+  match_id: string | null
   candidate_profiles: {
     full_name: string
     title: string
-    location: string
+    location: string | null
     seniority: string | null
     years_of_experience: number | null
     skills: string[]
@@ -97,6 +119,11 @@ export type JobApplicationForCompany = {
   } | null
   match?: {
     score: number | null
+    breakdown: MatchBreakdown | null
+    strengths: string[] | null
+    gaps: string[] | null
+    explanation: string | null
+    recommendation: "strong_yes" | "yes" | "maybe" | "no" | null
   } | null
 }
 

@@ -16,6 +16,9 @@ import {
   Inbox,
   Briefcase,
   Sparkles,
+  CheckCircle,
+  XCircle,
+  ChevronUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -31,7 +34,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
-import { getJobWithApplications, updateJobStatus, updateApplicationStatus, generateMatchScore } from "@/lib/actions/company"
+import { getJobWithApplications, updateJobStatus, updateApplicationStatus, generateMatchScore, generateMatchDetail } from "@/lib/actions/company"
 import {
   COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY,
   JOB_POSTINGS_QUERY_KEY,
@@ -40,6 +43,8 @@ import {
   type JobPosting,
 } from "@/lib/company"
 import { getOrCreateConversation } from "@/lib/actions/message"
+import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 const locationTypeLabel: Record<string, string> = {
   remote: "Remoto",
@@ -143,6 +148,8 @@ function JobDetailsSkeleton() {
   )
 }
 
+
+
 function ApplicationCard({
   application,
   jobId,
@@ -154,7 +161,7 @@ function ApplicationCard({
   const router = useRouter()
   const candidate = application.candidate_profiles
   const statusCfg = applicationStatusConfig[application.status]
-
+  const [analysisExpanded, setAnalysisExpanded] = useState(false)
 
   const { mutate: generateScore, isPending: isGeneratingScore } = useMutation({
     mutationFn: () =>
@@ -168,7 +175,18 @@ function ApplicationCard({
     onError: () => toast.error("Could not generate the score"),
   })
 
-  const score = application.match?.score ?? null
+  const { mutate: runAnalysis, isPending: isAnalyzing } = useMutation({
+    mutationFn: () =>
+      generateMatchDetail(application.candidate_id, jobId, application.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY(jobId),
+      })
+      setAnalysisExpanded(true)
+      toast.success("AI analysis complete")
+    },
+    onError: () => toast.error("Could not generate AI analysis"),
+  })
 
   const { mutate: changeStatus, isPending } = useMutation({
     mutationFn: (status: ApplicationStatus) =>
@@ -179,16 +197,12 @@ function ApplicationCard({
         queryKey: COMPANY_JOB_WITH_APPLICATIONS_QUERY_KEY(jobId),
       })
     },
-    onError: () => {
-      toast.error("Could not update the status")
-    },
+    onError: () => toast.error("Could not update the status"),
   })
 
   const { mutate: contactCandidate, isPending: isStartingChat } = useMutation({
     mutationFn: async () => {
-      if (!application.candidate_id) {
-        throw new Error("Invalid candidate")
-      }
+      if (!application.candidate_id) throw new Error("Invalid candidate")
       const conversationId = await getOrCreateConversation(application.candidate_id, jobId)
       router.push(`/dashboard/company/messages/${conversationId}`)
     },
@@ -196,6 +210,19 @@ function ApplicationCard({
       toast.error(error instanceof Error ? error.message : "Could not start the chat")
     },
   })
+
+  const score = application.match?.score ?? null
+  const match = application.match
+  const hasDetail = !!match?.explanation
+
+  const recommendationConfig: Record<string, { label: string; className: string }> = {
+    strong_yes: { label: "Strong Yes", className: "bg-green-100 text-green-700 border-green-200" },
+    yes: { label: "Yes", className: "bg-blue-100 text-blue-700 border-blue-200" },
+    maybe: { label: "Maybe", className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
+    no: { label: "No", className: "bg-red-100 text-red-700 border-red-200" },
+  }
+
+  const rec = match?.recommendation ? recommendationConfig[match.recommendation] : null
 
   return (
     <Card>
@@ -214,7 +241,7 @@ function ApplicationCard({
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <div>
                 <p className="font-semibold leading-tight">
-                  {candidate?.full_name ?? "Candidato/a"}
+                  {candidate?.full_name ?? "Candidate"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {candidate?.title ?? "—"}
@@ -229,24 +256,18 @@ function ApplicationCard({
                     disabled={isPending}
                     className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border transition-opacity ${statusCfg.className} ${isPending ? "opacity-60" : "hover:opacity-80 cursor-pointer"}`}
                   >
-                    {isPending ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : null}
+                    {isPending && <Loader2 className="h-3 w-3 animate-spin" />}
                     {statusCfg.label}
                     <ChevronDown className="h-3 w-3 opacity-70" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {ALL_APPLICATION_STATUSES.filter((s) => s !== application.status).map(
-                    (s) => (
-                      <DropdownMenuItem key={s} onClick={() => changeStatus(s)}>
-                        <span
-                          className={`w-2 h-2 rounded-full mr-2 ${applicationStatusConfig[s].className}`}
-                        />
-                        {applicationStatusConfig[s].label}
-                      </DropdownMenuItem>
-                    )
-                  )}
+                  {ALL_APPLICATION_STATUSES.filter((s) => s !== application.status).map((s) => (
+                    <DropdownMenuItem key={s} onClick={() => changeStatus(s)}>
+                      <span className={`w-2 h-2 rounded-full mr-2 ${applicationStatusConfig[s].className}`} />
+                      {applicationStatusConfig[s].label}
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -254,12 +275,14 @@ function ApplicationCard({
             {/* Badges row */}
             <div className="flex flex-wrap items-center gap-2">
               {score !== null ? (
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${score >= 70
+                <span className={cn(
+                  "text-xs font-semibold px-2.5 py-1 rounded-full border",
+                  score >= 70
                     ? "bg-green-100 text-green-700 border-green-200"
                     : score >= 50
                       ? "bg-yellow-100 text-yellow-700 border-yellow-200"
                       : "bg-red-100 text-red-700 border-red-200"
-                  }`}>
+                )}>
                   {score}% match
                 </span>
               ) : (
@@ -268,14 +291,23 @@ function ApplicationCard({
                   disabled={isGeneratingScore}
                   className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
                 >
-                  {isGeneratingScore ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3 w-3" />
-                  )}
-                  {isGeneratingScore ? "Calculando..." : "Generar match"}
+                  {isGeneratingScore
+                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                    : <Sparkles className="h-3 w-3" />
+                  }
+                  {isGeneratingScore ? "Generating..." : "Generate match"}
                 </button>
               )}
+
+              {rec && (
+                <span className={cn(
+                  "text-xs font-semibold px-2.5 py-1 rounded-full border",
+                  rec.className
+                )}>
+                  {rec.label}
+                </span>
+              )}
+
               {candidate?.seniority && (
                 <Badge variant="secondary" className="text-xs font-normal">
                   {seniorityLabel[candidate.seniority] ?? candidate.seniority}
@@ -284,7 +316,7 @@ function ApplicationCard({
               {candidate?.years_of_experience != null && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {candidate.years_of_experience}+ años
+                  {candidate.years_of_experience}+ years
                 </span>
               )}
               {candidate?.location && (
@@ -305,8 +337,131 @@ function ApplicationCard({
                 ))}
                 {candidate.skills.length > 6 && (
                   <span className="text-xs text-muted-foreground self-center">
-                    +{candidate.skills.length - 6} más
+                    +{candidate.skills.length - 6} more
                   </span>
+                )}
+              </div>
+            )}
+
+            {/* AI Analysis panel — visible solo si hay score */}
+            {score !== null && (
+              <div className="border rounded-lg overflow-hidden">
+                {/* Panel header */}
+                <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-medium">AI Analysis</span>
+                  </div>
+
+                  {hasDetail ? (
+                    <button
+                      onClick={() => setAnalysisExpanded(!analysisExpanded)}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                    >
+                      {analysisExpanded
+                        ? <><ChevronUp className="h-3.5 w-3.5" /> Hide</>
+                        : <><ChevronDown className="h-3.5 w-3.5" /> Show details</>
+                      }
+                    </button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-xs gap-1.5 px-2"
+                      disabled={isAnalyzing}
+                      onClick={() => runAnalysis()}
+                    >
+                      {isAnalyzing
+                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                        : <Sparkles className="h-3 w-3" />
+                      }
+                      {isAnalyzing ? "Analyzing..." : "Run analysis"}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Panel body — expandible */}
+                {hasDetail && analysisExpanded && (
+                  <div className="px-3 py-3 space-y-4 border-t">
+
+                    {/* Breakdown */}
+                    {match.breakdown && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Score breakdown
+                        </p>
+                        {(
+                          [
+                            ["Technical skills", match.breakdown.technical_skills],
+                            ["Experience level", match.breakdown.experience_level],
+                            ["Education", match.breakdown.education],
+                          ] as [string, number][]
+                        ).map(([label, value]) => (
+                          <div key={label} className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">{label}</span>
+                              <span className="font-semibold">{value}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  value >= 70 ? "bg-green-500" : value >= 50 ? "bg-yellow-500" : "bg-red-500"
+                                )}
+                                style={{ width: `${value}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Strengths */}
+                    {match.strengths && match.strengths.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Strengths
+                        </p>
+                        <div className="space-y-1">
+                          {match.strengths.map((s, i) => (
+                            <div key={i} className="flex items-start gap-2 text-xs text-green-700 dark:text-green-400">
+                              <CheckCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                              <span>{s}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Gaps */}
+                    {match.gaps && match.gaps.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Gaps
+                        </p>
+                        <div className="space-y-1">
+                          {match.gaps.map((g, i) => (
+                            <div key={i} className="flex items-start gap-2 text-xs text-red-700 dark:text-red-400">
+                              <XCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                              <span>{g}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Explanation */}
+                    {match.explanation && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Summary
+                        </p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {match.explanation}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -315,7 +470,7 @@ function ApplicationCard({
             {application.cover_letter && (
               <div className="space-y-1">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Carta de presentación
+                  Cover Letter
                 </p>
                 <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3 leading-relaxed border line-clamp-3">
                   {application.cover_letter}
@@ -326,8 +481,8 @@ function ApplicationCard({
             {/* Footer row */}
             <div className="flex items-center justify-between gap-2 pt-1">
               <p className="text-xs text-muted-foreground">
-                Aplicó el{" "}
-                {new Date(application.applied_at).toLocaleDateString("es-AR", {
+                Applied on{" "}
+                {new Date(application.applied_at).toLocaleDateString("en-US", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
@@ -335,15 +490,10 @@ function ApplicationCard({
               </p>
               <div className="flex items-center gap-2">
                 {candidate?.cv_url && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs gap-1.5"
-                    asChild
-                  >
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5" asChild>
                     <a href={candidate.cv_url} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-3.5 w-3.5" />
-                      Ver CV
+                      View CV
                     </a>
                   </Button>
                 )}
@@ -354,12 +504,11 @@ function ApplicationCard({
                   disabled={isStartingChat}
                   onClick={() => contactCandidate()}
                 >
-                  {isStartingChat ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Inbox className="h-3.5 w-3.5" />
-                  )}
-                  Contactar
+                  {isStartingChat
+                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    : <Inbox className="h-3.5 w-3.5" />
+                  }
+                  Contact
                 </Button>
               </div>
             </div>
@@ -591,8 +740,8 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
               <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>
-                      Published on{" "}
-                    {new Date(job.created_at).toLocaleDateString("en-US", {
+                  Published on{" "}
+                  {new Date(job.created_at).toLocaleDateString("en-US", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",

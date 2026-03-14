@@ -7,11 +7,16 @@ import type {
   JobPosting,
   JobApplicationForCompany,
   ApplicationStatus,
+  MatchDetail,
+  MatchBreakdown,
 } from "@/lib/company"
 import { buildJobText, generateEmbedding } from "../ai/embeddings"
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import { redis } from "../redis"
 import { revalidatePath } from "next/cache"
+import OpenAI from "openai"
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 export async function createCompanyProfile(formData: FormData) {
   const supabase = await createClient()
@@ -238,7 +243,7 @@ export async function getJobWithApplications(jobId: string): Promise<{
   const candidateIds = apps.map((a) => a.candidate_id)
 
   const profileMap: Record<string, JobApplicationForCompany["candidate_profiles"]> = {}
-  const matchMap: Record<string, { score: number } | null> = {}
+  const matchMap: Record<string, { score: number, breakdown: MatchBreakdown, strengths: string[], gaps: string[], explanation: string, recommendation: "strong_yes" | "yes" | "maybe" | "no" } | null> = {}
 
   if (candidateIds.length > 0) {
     // Fetch profiles
@@ -254,12 +259,12 @@ export async function getJobWithApplications(jobId: string): Promise<{
     // Fetch matches para este job
     const { data: matches } = await supabaseAdmin
       .from("matches")
-      .select("candidate_id, score")
+      .select("candidate_id, score, breakdown, strengths, gaps, explanation, recommendation")
       .eq("job_id", jobId)
       .in("candidate_id", candidateIds)
 
     for (const m of matches ?? []) {
-      matchMap[m.candidate_id] = { score: m.score }
+      matchMap[m.candidate_id] = { score: m.score, breakdown: m.breakdown, strengths: m.strengths, gaps: m.gaps, explanation: m.explanation, recommendation: m.recommendation }
     }
   }
 
@@ -321,27 +326,27 @@ export async function generateMatchScore(
   if (!auth?.claims) redirect("/auth/login")
 
   const { data: job } = await supabaseAdmin
-  .from("job_postings")
-  .select("embedding")
-  .eq("id", jobId)
-  .single()
+    .from("job_postings")
+    .select("embedding")
+    .eq("id", jobId)
+    .single()
 
-if (!job?.embedding) throw new Error("Job sin embedding")
+  if (!job?.embedding) throw new Error("Job sin embedding")
 
-const { data: candidate } = await supabaseAdmin
-  .from("candidate_profiles")
-  .select("embedding")
-  .eq("id", candidateId)
-  .single()
+  const { data: candidate } = await supabaseAdmin
+    .from("candidate_profiles")
+    .select("embedding")
+    .eq("id", candidateId)
+    .single()
 
-if (!candidate?.embedding) throw new Error("Candidato sin embedding")
+  if (!candidate?.embedding) throw new Error("Candidato sin embedding")
 
   const parseEmbedding = (val: unknown): number[] => {
     if (Array.isArray(val)) return val
     if (typeof val === "string") return JSON.parse(val)
     throw new Error("Formato de embedding inválido")
   }
-  
+
   const a = parseEmbedding(job.embedding)
   const b = parseEmbedding(candidate.embedding)
   const dot = a.reduce((sum, val, i) => sum + val * b[i], 0)
@@ -368,4 +373,161 @@ if (!candidate?.embedding) throw new Error("Candidato sin embedding")
   }
 
   return score
+}
+
+
+export async function generateMatchDetail(
+  candidateId: string,
+  jobId: string,
+  applicationId: string
+): Promise<MatchDetail> {
+  const supabase = await createClient()
+  const { data: auth } = await supabase.auth.getClaims()
+  if (!auth?.claims) redirect("/auth/login")
+
+  // Verificar ownership
+  const { data: jobOwnership } = await supabase
+    .from("job_postings")
+    .select("id")
+    .eq("id", jobId)
+    .eq("company_id", auth.claims.sub)
+    .single()
+
+  if (!jobOwnership) throw new Error("Unauthorized")
+
+  // Si ya existe el análisis completo, devolverlo sin llamar a OpenAI
+  const { data: existingMatch } = await supabaseAdmin
+    .from("matches")
+    .select("score, breakdown, strengths, gaps, explanation, recommendation")
+    .eq("candidate_id", candidateId)
+    .eq("job_id", jobId)
+    .not("explanation", "is", null)
+    .single()
+
+  if (existingMatch?.explanation) {
+    return existingMatch as MatchDetail
+  }
+
+  // Traer datos completos del candidato y del job
+  const [{ data: candidate }, { data: job }] = await Promise.all([
+    supabaseAdmin
+      .from("candidate_profiles")
+      .select("full_name, title, seniority, years_of_experience, skills, cv_parsed, embedding")
+      .eq("id", candidateId)
+      .single(),
+    supabaseAdmin
+      .from("job_postings")
+      .select("title, description, seniority_required, years_required, required_skills, nice_to_have_skills, embedding")
+      .eq("id", jobId)
+      .single(),
+  ])
+
+  if (!candidate || !job) throw new Error("Candidate or job not found")
+
+  // Calcular score si no existe todavía
+  const parseEmbedding = (val: unknown): number[] => {
+    if (Array.isArray(val)) return val
+    if (typeof val === "string") return JSON.parse(val)
+    throw new Error("Invalid embedding format")
+  }
+
+  const a = parseEmbedding(job.embedding)
+  const b = parseEmbedding(candidate.embedding)
+  const dot = a.reduce((sum: number, val: number, i: number) => sum + val * b[i], 0)
+  const magA = Math.sqrt(a.reduce((sum: number, val: number) => sum + val * val, 0))
+  const magB = Math.sqrt(b.reduce((sum: number, val: number) => sum + val * val, 0))
+  const score = Math.round((dot / (magA * magB)) * 100)
+
+  // Llamar a GPT para el análisis detallado
+  const aiResponse = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    max_tokens: 800,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `You are an expert technical recruiter. Analyze the compatibility between a candidate and a job posting.
+
+Return ONLY valid JSON with exactly this structure:
+{
+  "breakdown": {
+    "technical_skills": <0-100>,
+    "experience_level": <0-100>,
+    "education": <0-100>
+  },
+  "strengths": ["<specific strength 1>", "<specific strength 2>", "<specific strength 3>"],
+  "gaps": ["<specific gap 1>", "<specific gap 2>"],
+  "explanation": "<2-3 sentence summary of the overall match>",
+  "recommendation": "<strong_yes|yes|maybe|no>"
+}
+
+RULES:
+- breakdown scores should reflect the partial match for each dimension
+- strengths: specific matches between candidate skills and job requirements (max 4)
+- gaps: specific missing requirements (max 3, empty array if none)
+- explanation: concise, factual, professional tone
+- recommendation criteria:
+  * strong_yes: score >= 75, strong skill match
+  * yes: score >= 60, good overall fit
+  * maybe: score >= 45, partial match with notable gaps
+  * no: score < 45, significant misalignment`,
+      },
+      {
+        role: "user",
+        content: `CANDIDATE:
+Name: ${candidate.full_name}
+Title: ${candidate.title}
+Seniority: ${candidate.seniority}
+Years of experience: ${candidate.years_of_experience}
+Skills: ${candidate.skills?.join(", ")}
+CV Summary: ${(candidate.cv_parsed as { summary?: string })?.summary ?? "N/A"}
+
+JOB:
+Title: ${job.title}
+Seniority required: ${job.seniority_required}
+Years required: ${job.years_required}+
+Required skills: ${job.required_skills?.join(", ")}
+Nice to have: ${job.nice_to_have_skills?.join(", ") ?? "None"}
+Description: ${job.description?.slice(0, 500)}
+
+Overall compatibility score: ${score}%
+
+Analyze this match and return the JSON.`,
+      },
+    ],
+  })
+
+  const content = aiResponse.choices[0].message.content
+  if (!content) throw new Error("OpenAI returned no response")
+
+  const analysis = JSON.parse(content)
+
+  // Guardar todo en matches
+  const { data: match } = await supabaseAdmin
+    .from("matches")
+    .upsert(
+      {
+        candidate_id: candidateId,
+        job_id: jobId,
+        score,
+        breakdown: analysis.breakdown,
+        strengths: analysis.strengths,
+        gaps: analysis.gaps,
+        explanation: analysis.explanation,
+        recommendation: analysis.recommendation,
+        calculated_at: new Date().toISOString(),
+      },
+      { onConflict: "candidate_id,job_id" }
+    )
+    .select("id")
+    .single()
+
+  if (match?.id) {
+    await supabaseAdmin
+      .from("applications")
+      .update({ match_id: match.id })
+      .eq("id", applicationId)
+  }
+
+  return { score, ...analysis } as MatchDetail
 }
