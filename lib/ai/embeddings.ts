@@ -17,18 +17,20 @@ export function buildCandidateText(parsedCV: {
   seniority?: string
   years_of_experience?: number
   job_titles?: string[]
-  summary?: string
 }): string {
+  // Skills repetidas 3x para darles más peso semántico
+  const skillsLine = parsedCV.skills?.length
+    ? Array(3).fill(`Skills: ${parsedCV.skills.join(", ")}`).join("\n")
+    : ""
+
   return [
-    parsedCV.skills?.length ? `Skills: ${parsedCV.skills.join(", ")}` : "",
-    parsedCV.seniority ? `Seniority: ${parsedCV.seniority}` : "",
-    parsedCV.years_of_experience ? `Years of experience: ${parsedCV.years_of_experience}` : "",
+    skillsLine,
     parsedCV.job_titles?.length ? `Titles: ${parsedCV.job_titles.join(", ")}` : "",
-    parsedCV.summary ? `Summary: ${parsedCV.summary}` : "",
+    parsedCV.seniority ? `Seniority: ${parsedCV.seniority}` : "",
+    parsedCV.years_of_experience != null ? `Years of experience: ${parsedCV.years_of_experience}` : "",
   ].filter(Boolean).join("\n").trim()
 }
 
-// Texto representativo de la oferta para el embedding
 export function buildJobText(job: {
   title: string
   description: string
@@ -37,12 +39,15 @@ export function buildJobText(job: {
   seniority_required?: string
   years_required?: number
 }): string {
+  const requiredSkillsLine = job.required_skills?.length
+    ? Array(3).fill(`Required skills: ${job.required_skills.join(", ")}`).join("\n")
+    : ""
+
   return [
     `Title: ${job.title}`,
-    job.required_skills?.length ? `Required skills: ${job.required_skills.join(", ")}` : "",
+    requiredSkillsLine,
     job.nice_to_have_skills?.length ? `Nice to have: ${job.nice_to_have_skills.join(", ")}` : "",
     job.seniority_required ? `Seniority: ${job.seniority_required}` : "",
-    job.years_required ? `Years required: ${job.years_required}` : "",
-    `Description: ${job.description}`,
+    job.years_required != null ? `Years required: ${job.years_required}` : "",
   ].filter(Boolean).join("\n").trim()
 }

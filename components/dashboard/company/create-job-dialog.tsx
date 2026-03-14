@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus } from "lucide-react"
+import { TagInput } from "@/components/ui/tag-input"
 
 const SENIORITY_OPTIONS = [
   { value: "junior", label: "Junior" },
@@ -34,8 +35,8 @@ const SENIORITY_OPTIONS = [
 ]
 
 const LOCATION_TYPE_OPTIONS = [
-  { value: "remote", label: "Remoto" },
-  { value: "hybrid", label: "Híbrido" },
+  { value: "remote", label: "Remote" },
+  { value: "hybrid", label: "Hybrid" },
   { value: "onsite", label: "On-site" },
 ]
 
@@ -43,6 +44,8 @@ export function CreateJobDialog() {
   const [open, setOpen] = useState(false)
   const [locationType, setLocationType] = useState<string>("")
   const [seniority, setSeniority] = useState<string>("")
+  const [requiredSkills, setRequiredSkills] = useState<string[]>([])
+  const [niceToHaveSkills, setNiceToHaveSkills] = useState<string[]>([])
   const queryClient = useQueryClient()
 
   const { mutate, isPending, error } = useMutation({
@@ -52,6 +55,8 @@ export function CreateJobDialog() {
       setOpen(false)
       setLocationType("")
       setSeniority("")
+      setRequiredSkills([])
+      setNiceToHaveSkills([])
     },
   })
 
@@ -60,6 +65,8 @@ export function CreateJobDialog() {
     const formData = new FormData(e.currentTarget)
     if (locationType) formData.set("location_type", locationType)
     if (seniority) formData.set("seniority_required", seniority)
+    if (requiredSkills.length) formData.set("required_skills", requiredSkills.join(","))
+    if (niceToHaveSkills.length) formData.set("nice_to_have_skills", niceToHaveSkills.join(","))
     mutate(formData)
   }
 
@@ -196,18 +203,18 @@ export function CreateJobDialog() {
           {/* Skills */}
           <div className="space-y-2">
             <Label htmlFor="required_skills">Required skills</Label>
-            <Input
-              id="required_skills"
-              name="required_skills"
-              placeholder="React, TypeScript, Node.js (separados por coma)"
+            <TagInput
+              value={requiredSkills}
+              onChange={setRequiredSkills}
+              placeholder="e.g. React, TypeScript (type and press Enter)"
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="nice_to_have_skills">Optional skills</Label>
-            <Input
-              id="nice_to_have_skills"
-              name="nice_to_have_skills"
-              placeholder="Docker, AWS, GraphQL (separados por coma)"
+            <TagInput
+              value={niceToHaveSkills}
+              onChange={setNiceToHaveSkills}
+              placeholder="e.g. Docker, AWS (type and press Enter)"
             />
           </div>
 

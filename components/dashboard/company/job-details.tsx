@@ -47,9 +47,9 @@ import { cn } from "@/lib/utils"
 import { useState } from "react"
 
 const locationTypeLabel: Record<string, string> = {
-  remote: "Remoto",
-  hybrid: "Híbrido",
-  onsite: "Presencial",
+  remote: "Remote",
+  hybrid: "Hybrid",
+  onsite: "Onsite",
 }
 
 const seniorityLabel: Record<string, string> = {
@@ -63,9 +63,9 @@ const jobStatusConfig: Record<
   JobPosting["status"],
   { label: string; variant: "default" | "secondary" | "destructive" }
 > = {
-  active: { label: "Activo", variant: "default" },
-  paused: { label: "Pausado", variant: "secondary" },
-  closed: { label: "Cerrado", variant: "destructive" },
+  active: { label: "Active", variant: "default" },
+  paused: { label: "Paused", variant: "secondary" },
+  closed: { label: "Closed", variant: "destructive" },
 }
 
 const applicationStatusConfig: Record<
@@ -73,12 +73,12 @@ const applicationStatusConfig: Record<
   { label: string; className: string }
 > = {
   applied: {
-    label: "New",
+    label: "Applied",
     className:
       "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
   },
   reviewed: {
-    label: "In review",
+    label: "Reviewed",
     className:
       "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-800",
   },
