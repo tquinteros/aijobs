@@ -442,7 +442,7 @@ export const JobDetails = ({ jobId }: { jobId: string }) => {
         onClick={() => router.back()}
       >
         <ArrowLeft className="h-4 w-4" />
-        Volver a búsquedas
+        Back to searches
       </Button>
 
       {/* Header */}

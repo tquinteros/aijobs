@@ -10,12 +10,12 @@ type Step = "idle" | "uploading" | "extracting" | "analyzing" | "saving" | "done
 
 const stepMessages: Record<Step, string> = {
   idle: "",
-  uploading: "Subiendo archivo...",
-  extracting: "Extrayendo texto del PDF...",
-  analyzing: "La IA está analizando tu CV...",
-  saving: "Guardando tu perfil...",
-  done: "¡Todo listo!",
-  error: "Ocurrió un error",
+  uploading: "Uploading file...",
+  extracting: "Extracting text from PDF...",
+  analyzing: "The AI is analyzing your CV...",
+  saving: "Saving your profile...",
+  done: "All done!",
+  error: "An error occurred",
 }
 
 export default function CVUploadPage() {
@@ -27,11 +27,11 @@ export default function CVUploadPage() {
   const router = useRouter()
   function handleFile(selected: File) {
     if (selected.type !== "application/pdf") {
-      setErrorMsg("Solo se aceptan archivos PDF")
+      setErrorMsg("Only PDF files are accepted")
       return
     }
     if (selected.size > 5 * 1024 * 1024) {
-      setErrorMsg("El archivo no puede superar 5MB")
+      setErrorMsg("The file cannot be larger than 5MB")
       return
     }
     setErrorMsg("")
@@ -66,11 +66,11 @@ export default function CVUploadPage() {
     try {
       await uploadAndParseCV(formData)
       setStep("done")
-      toast.success("¡CV analizado correctamente!")
+      toast.success("CV analyzed successfully!")
       router.push("/dashboard/candidate")
     } catch (error) {
       setStep("error")
-      setErrorMsg(error instanceof Error ? error.message : "Error desconocido")
+      setErrorMsg(error instanceof Error ? error.message : "Unknown error")
     }
   }
 
@@ -80,10 +80,10 @@ export default function CVUploadPage() {
     <div className="max-w-lg mx-auto py-16 px-4">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-sm text-muted-foreground mb-1">Paso 2 de 2</p>
-        <h1 className="text-2xl font-bold">Subí tu CV</h1>
+        <p className="text-sm text-muted-foreground mb-1">Step 2 of 2</p>
+        <h1 className="text-2xl font-bold">Upload your CV</h1>
         <p className="text-muted-foreground mt-1">
-          La IA va a extraer tus skills y experiencia automáticamente.
+          The AI will extract your skills and experience automatically.
         </p>
       </div>
 
@@ -120,7 +120,7 @@ export default function CVUploadPage() {
                 onClick={(e) => { e.stopPropagation(); setFile(null) }}
                 className="text-xs text-muted-foreground hover:text-destructive mt-1"
               >
-                Cambiar archivo
+                Change file
               </button>
             )}
           </div>
@@ -128,10 +128,10 @@ export default function CVUploadPage() {
           <div className="flex flex-col items-center gap-3">
             <UploadCloud className="w-10 h-10 text-muted-foreground" />
             <div>
-              <p className="font-medium">Arrastrá tu CV acá</p>
-              <p className="text-sm text-muted-foreground">o hacé click para seleccionar</p>
+              <p className="font-medium">Drag and drop your CV here</p>
+              <p className="text-sm text-muted-foreground">or click to select</p>
             </div>
-            <p className="text-xs text-muted-foreground">PDF · Máximo 5MB</p>
+            <p className="text-xs text-muted-foreground">PDF · Maximum 5MB</p>
           </div>
         )}
       </div>
@@ -180,7 +180,7 @@ export default function CVUploadPage() {
           className="w-full mt-6 bg-primary text-primary-foreground rounded-md py-2 font-medium
             disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         >
-          Analizar y continuar →
+          Analyze and continue →
         </button>
       )}
     </div>

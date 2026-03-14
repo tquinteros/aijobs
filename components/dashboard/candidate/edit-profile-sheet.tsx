@@ -54,11 +54,11 @@ export function EditProfileSheet({ profile }: Props) {
                 await updateCandidateProfile(formData)
                 await queryClient.invalidateQueries({ queryKey: ["candidateProfile"] })
                 setSuccess(true)
-                toast.success("Perfil de candidato actualizado correctamente")
+                toast.success("Candidate profile updated successfully")
                 setOpen(false)
                 setSuccess(false)
             } catch (err) {
-                setError(err instanceof Error ? err.message : "Error al guardar")
+                setError(err instanceof Error ? err.message : "Error saving")
             }
         })
     }
@@ -68,7 +68,7 @@ export function EditProfileSheet({ profile }: Props) {
             <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                     <Pencil className="h-3.5 w-3.5" />
-                    Editar perfil
+                    Edit profile
                 </Button>
             </SheetTrigger>
 
@@ -80,7 +80,7 @@ export function EditProfileSheet({ profile }: Props) {
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {/* Nombre */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="full_name">Nombre completo</Label>
+                        <Label htmlFor="full_name">Full name</Label>
                         <Input
                             id="full_name"
                             name="full_name"
@@ -92,7 +92,7 @@ export function EditProfileSheet({ profile }: Props) {
 
                     {/* Título */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="title">Título profesional</Label>
+                        <Label htmlFor="title">Professional title</Label>
                         <Input
                             id="title"
                             name="title"
@@ -104,11 +104,11 @@ export function EditProfileSheet({ profile }: Props) {
 
                     {/* Ubicación */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="location">Ubicación</Label>
+                        <Label htmlFor="location">Location</Label>
                         <Input
                             id="location"
                             name="location"
-                            placeholder="ej: Buenos Aires, Argentina"
+                            placeholder="e.g. Buenos Aires, Argentina"
                             defaultValue={profile.location ?? ""}
                             disabled={isPending}
                         />
@@ -120,7 +120,7 @@ export function EditProfileSheet({ profile }: Props) {
                         <Textarea
                             id="bio"
                             name="bio"
-                            placeholder="Contá brevemente quién sos y qué buscás"
+                            placeholder="Briefly describe who you are and what you're looking for"
                             defaultValue={profile.bio ?? ""}
                             disabled={isPending}
                             rows={3}
@@ -136,7 +136,7 @@ export function EditProfileSheet({ profile }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="junior">Junior</SelectItem>
-                                <SelectItem value="mid">Mid-level</SelectItem>
+                                <SelectItem value="mid">Mid</SelectItem>
                                 <SelectItem value="senior">Senior</SelectItem>
                                 <SelectItem value="lead">Lead / Staff</SelectItem>
                             </SelectContent>
@@ -145,7 +145,7 @@ export function EditProfileSheet({ profile }: Props) {
 
                     {/* Años de experiencia */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="years_of_experience">Años de experiencia</Label>
+                        <Label htmlFor="years_of_experience">Years of experience</Label>
                         <Input
                             id="years_of_experience"
                             name="years_of_experience"
@@ -160,9 +160,9 @@ export function EditProfileSheet({ profile }: Props) {
                     {/* Skills */}
                     <div className="space-y-1.5">
                         <Label>
-                            Habilidades técnicas
+                            Technical skills
                             <span className="text-xs text-muted-foreground ml-1">
-                                (Enter para agregar, click × para eliminar)
+                                (Enter to add, click × to remove)
                             </span>
                         </Label>
                         <TagInput
@@ -185,13 +185,13 @@ export function EditProfileSheet({ profile }: Props) {
                     {success && (
                         <div className="flex items-center gap-2 text-green-700 text-sm p-3 rounded-lg border border-green-200 bg-green-50">
                             <CheckCircle className="h-4 w-4 shrink-0" />
-                            Perfil actualizado correctamente
+                            Profile updated successfully
                         </div>
                     )}
 
                     {/* Aviso embedding */}
                     <p className="text-xs text-muted-foreground">
-                        Al guardar se recalculará tu compatibilidad con los empleos disponibles.
+                        When saving, your compatibility with available jobs will be recalculated.
                     </p>
 
                     <div className="flex gap-3 pt-2">
@@ -202,16 +202,16 @@ export function EditProfileSheet({ profile }: Props) {
                             onClick={() => setOpen(false)}
                             disabled={isPending}
                         >
-                            Cancelar
+                            Cancel
                         </Button>
                         <Button type="submit" className="flex-1" disabled={isPending}>
                             {isPending ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Guardando...
+                                    Saving...
                                 </>
                             ) : (
-                                "Guardar cambios"
+                                "Save changes"
                             )}
                         </Button>
                     </div>

@@ -53,17 +53,17 @@ Candidate visits /jobs
 
 # Stack
 
-| Layer | Technology |
-|------|-----------|
-| Framework | Next.js 16 App Router + TypeScript |
-| Database | Supabase (PostgreSQL + pgvector) |
-| Auth | Supabase Auth with RLS |
-| Storage | Supabase Storage (PDF CVs) |
-| Realtime | Supabase Realtime |
-| AI | OpenAI gpt-4o-mini + text-embedding-3-small |
-| Cache | Redis (Upstash) |
-| UI | Tailwind CSS + Shadcn/ui |
-| Data fetching | TanStack Query |
+| Layer         | Technology                                  |
+| ------------- | ------------------------------------------- |
+| Framework     | Next.js 16 App Router + TypeScript          |
+| Database      | Supabase (PostgreSQL + pgvector)            |
+| Auth          | Supabase Auth with RLS                      |
+| Storage       | Supabase Storage (PDF CVs)                  |
+| Realtime      | Supabase Realtime                           |
+| AI            | OpenAI gpt-4o-mini + text-embedding-3-small |
+| Cache         | Redis (Upstash)                             |
+| UI            | Tailwind CSS + Shadcn/ui                    |
+| Data fetching | TanStack Query                              |
 
 ---
 
@@ -173,9 +173,6 @@ components/
 ## Pending MVP
 
 - [ ] Edit job posting (regenerates embedding)
-- [ ] Edit company profile
-- [ ] Application status visible to candidate
-- [ ] Unread message notifications in the navigation
 - [ ] Landing page
 - [ ] Demo user for testing without registration
 
@@ -184,8 +181,7 @@ components/
 ## Post-MVP
 
 - [ ] AI Match Detail — score breakdown with gpt-4o-mini  
-      (strengths, gaps, explanation, recommendation)
-
+       (strengths, gaps, explanation, recommendation)
 - [ ] Email notifications with Resend
 - [ ] Filters on `/jobs` (remote, seniority, skills)
 - [ ] Company analytics (views, conversion rate per job)
