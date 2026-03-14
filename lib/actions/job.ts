@@ -9,6 +9,11 @@ import type {
   Application,
   CandidateApplicationWithJob,
 } from "@/lib/company"
+import {
+  type JobFilters,
+  DEFAULT_FILTERS,
+  applyFilters,
+} from "@/lib/job-filters"
 
 const JOBS_CACHE_TTL = 60 * 60
 
@@ -52,11 +57,16 @@ async function fetchPublicJobs(): Promise<PublicJobListing[]> {
   return result
 }
 
-export async function getPublicJobs(): Promise<PublicJobListing[]> {
+export type GetPublicJobsResult = { jobs: PublicJobListing[]; total: number }
+
+export async function getPublicJobs(filters?: JobFilters | null): Promise<GetPublicJobsResult> {
   const supabase = await createClient()
+  const effectiveFilters = filters ?? DEFAULT_FILTERS
 
   const { data: authData } = await supabase.auth.getClaims()
   const userId = authData?.claims?.sub
+
+  let fullList: PublicJobListing[]
 
   if (userId) {
     const { data: candidateProfile } = await supabase
@@ -71,51 +81,58 @@ export async function getPublicJobs(): Promise<PublicJobListing[]> {
 
       if (cached) {
         console.log("[jobs] Redis HIT (vector):", cacheKey, "items:", cached.length)
-        return cached
-      }
-      console.log("[jobs] Redis MISS (vector):", cacheKey, "→ fetching from DB")
+        fullList = cached
+      } else {
+        console.log("[jobs] Redis MISS (vector):", cacheKey, "→ fetching from DB")
 
-      const { data: vectorJobs, error } = await supabase.rpc(
-        "match_jobs_for_candidate",
-        {
-          candidate_embedding: candidateProfile.embedding,
-          match_count: 20,
-        }
-      )
-
-      if (!error && vectorJobs?.length) {
-        const jobIds = (vectorJobs as VectorJobResult[]).map((j) => j.id)
-
-        const { data: jobsWithCompany } = await supabase
-          .from("job_postings")
-          .select("id, company_profiles(company_name, industry, location)")
-          .in("id", jobIds)
-
-        const companyMap = Object.fromEntries(
-          (jobsWithCompany as unknown as JobWithCompany[] ?? []).map((c) => [
-            c.id,
-            c.company_profiles,
-          ])
+        const { data: vectorJobs, error } = await supabase.rpc(
+          "match_jobs_for_candidate",
+          {
+            candidate_embedding: candidateProfile.embedding,
+            match_count: 20,
+          }
         )
 
-        const result = (vectorJobs as VectorJobResult[]).map((job) => {
-          const withCompany = {
-            ...job,
-            company_profiles: companyMap[job.id] ?? null,
-            similarity_score: Math.round(job.similarity * 100),
-          }
-          return withoutEmbedding(withCompany as Record<string, unknown>) as PublicJobListing
-        })
-        await redis.set(cacheKey, result, { ex: JOBS_CACHE_TTL })
-        console.log("[jobs] Redis SET (vector):", cacheKey, "items:", result.length, "TTL:", JOBS_CACHE_TTL, "s")
+        if (!error && vectorJobs?.length) {
+          const jobIds = (vectorJobs as VectorJobResult[]).map((j) => j.id)
 
-        return result
+          const { data: jobsWithCompany } = await supabase
+            .from("job_postings")
+            .select("id, company_profiles(company_name, industry, location)")
+            .in("id", jobIds)
+
+          const companyMap = Object.fromEntries(
+            (jobsWithCompany as unknown as JobWithCompany[] ?? []).map((c) => [
+              c.id,
+              c.company_profiles,
+            ])
+          )
+
+          const result = (vectorJobs as VectorJobResult[]).map((job) => {
+            const withCompany = {
+              ...job,
+              company_profiles: companyMap[job.id] ?? null,
+              similarity_score: Math.round(job.similarity * 100),
+            }
+            return withoutEmbedding(withCompany as Record<string, unknown>) as PublicJobListing
+          })
+          await redis.set(cacheKey, result, { ex: JOBS_CACHE_TTL })
+          console.log("[jobs] Redis SET (vector):", cacheKey, "items:", result.length, "TTL:", JOBS_CACHE_TTL, "s")
+          fullList = result
+        } else {
+          fullList = await fetchPublicJobs()
+        }
       }
+    } else {
+      fullList = await fetchPublicJobs()
     }
+  } else {
+    fullList = await fetchPublicJobs()
   }
 
-  // Fallback to non-personalized public jobs
-  return fetchPublicJobs()
+  const total = fullList.length
+  const jobs = applyFilters(fullList, effectiveFilters)
+  return { jobs, total }
 }
 
 // Used for server-side prefetching in the jobs page without blocking navigation

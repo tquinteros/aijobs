@@ -20,6 +20,21 @@ export type JobFilters = {
       search: params.get("search") ?? "",
     }
   }
+
+  /** For server components: parse filters from page searchParams record */
+  export function parseFiltersFromSearchParams(
+    params: Record<string, string | string[] | undefined>
+  ): JobFilters {
+    const get = (key: string) => {
+      const v = params[key]
+      return Array.isArray(v) ? v[0] ?? "" : (v ?? "")
+    }
+    return {
+      location_type: (get("location_type") ?? "") as JobFilters["location_type"],
+      seniority: (get("seniority") ?? "") as JobFilters["seniority"],
+      search: get("search") ?? "",
+    }
+  }
   
   export function applyFilters(jobs: PublicJobListing[], filters: JobFilters): PublicJobListing[] {
     return jobs.filter((job) => {

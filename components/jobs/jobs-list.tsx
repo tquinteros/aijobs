@@ -1,14 +1,14 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { getPublicJobs } from "@/lib/actions/job"
+import { getPublicJobs, type GetPublicJobsResult } from "@/lib/actions/job"
 import { PUBLIC_JOBS_QUERY_KEY, type PublicJobListing } from "@/lib/company"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MapPin, Clock, DollarSign, Building2, AlertCircle } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { applyFilters, parseFiltersFromParams } from "@/lib/job-filters"
+import { parseFiltersFromParams } from "@/lib/job-filters"
 import { useMemo } from "react"
 import { JobsFilters } from "./job-filters"
 
@@ -157,23 +157,21 @@ export function JobsListSkeleton() {
   )
 }
 
-export function JobsList({ initialJobs }: { initialJobs: PublicJobListing[] }) {
-  const { data: jobs, isLoading, isError } = useQuery({
-    queryKey: PUBLIC_JOBS_QUERY_KEY,
-    queryFn: getPublicJobs,
-    initialData: initialJobs,
-  })
-
+export function JobsList({ initialData }: { initialData?: GetPublicJobsResult | null }) {
   const searchParams = useSearchParams()
   const filters = useMemo(
     () => parseFiltersFromParams(searchParams),
     [searchParams]
   )
 
-  const filteredJobs = useMemo(
-    () => applyFilters(initialJobs, filters),
-    [jobs, filters]
-  )
+  const { data, isLoading, isError } = useQuery({
+    queryKey: [...PUBLIC_JOBS_QUERY_KEY, filters],
+    queryFn: () => getPublicJobs(filters),
+    initialData: initialData ?? undefined,
+  })
+
+  const jobs = data?.jobs ?? []
+  const total = data?.total ?? 0
 
   return (
     <div className="space-y-6">
@@ -181,13 +179,13 @@ export function JobsList({ initialJobs }: { initialJobs: PublicJobListing[] }) {
         <h1 className="text-2xl font-bold">Job searches</h1>
         <JobsFilters
           filters={filters}
-          totalJobs={initialJobs.length}
-          filteredCount={filteredJobs.length}
+          totalJobs={total}
+          filteredCount={jobs.length}
         />
 
         <p className="text-muted-foreground mt-1">
-          {!isLoading && initialJobs != null
-            ? `${initialJobs.length} job search${initialJobs.length !== 1 ? "s" : ""} active${initialJobs.length !== 1 ? "s" : ""}`
+          {!isLoading && data != null
+            ? `${total} job search${total !== 1 ? "s" : ""} active${total !== 1 ? "s" : ""}`
             : "Loading..."}
         </p>
       </div>
@@ -201,21 +199,21 @@ export function JobsList({ initialJobs }: { initialJobs: PublicJobListing[] }) {
         </div>
       )}
 
-      {!isLoading && !isError && initialJobs.length === 0 && (
+      {!isLoading && !isError && total === 0 && (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <p className="text-muted-foreground">No job searches published yet.</p>
         </div>
       )}
 
-      {!isLoading && initialJobs != null && initialJobs.length > 0 && filteredJobs.length === 0 && (
+      {!isLoading && !isError && total > 0 && jobs.length === 0 && (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <p className="text-muted-foreground">No jobs match your filters. Try adjusting or clearing them.</p>
         </div>
       )}
 
-      {!isLoading && initialJobs != null && filteredJobs.length > 0 && (
+      {!isLoading && !isError && jobs.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {filteredJobs.map((job) => (
+          {jobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}
         </div>
