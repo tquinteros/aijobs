@@ -165,30 +165,13 @@ messages              -- conversation_id, sender_role, content, read_at
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 OPENAI_API_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 NEXT_PUBLIC_APP_URL=
 ```
-
----
-
-## Getting Started
-
-```bash
-git clone https://github.com/tquinteros/aijobs
-cd aijobs
-pnpm install
-cp .env.example .env.local
-# Fill in environment variables
-npm run dev
-```
-
-Or try the live demo — use the **Demo Candidate** or **Demo Recruiter** buttons on the login page to explore without registering.
-
----
 
 ## Roadmap
 
