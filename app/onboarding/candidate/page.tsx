@@ -3,6 +3,11 @@ import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { createCandidateProfile } from "@/lib/actions/candidate"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 
 async function OnboardingForm() {
   const supabase = await createClient()
@@ -27,68 +32,73 @@ async function OnboardingForm() {
   if (existing) redirect("/dashboard/candidate")
 
   return (
-    <form action={createCandidateProfile} className="space-y-4">
-      <div className="space-y-1">
-        <label className="text-sm font-medium">Nombre completo</label>
-        <input
+    <form action={createCandidateProfile} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="full_name">Nombre completo</Label>
+        <Input
+          id="full_name"
           name="full_name"
           required
-          className="w-full border rounded-md px-3 py-2"
           placeholder="Tomás Quinteros"
         />
       </div>
 
-      <div className="space-y-1">
-        <label className="text-sm font-medium">Título profesional</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="title">Título profesional</Label>
+        <Input
+          id="title"
           name="title"
           required
-          className="w-full border rounded-md px-3 py-2"
           placeholder="Fullstack Developer"
         />
       </div>
 
-      <div className="space-y-1">
-        <label className="text-sm font-medium">Ubicación</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="location">Ubicación</Label>
+        <Input
+          id="location"
           name="location"
-          className="w-full border rounded-md px-3 py-2"
+          required
           placeholder="Córdoba, Argentina"
         />
       </div>
 
-      <div className="space-y-1">
-        <label className="text-sm font-medium">Bio corta</label>
-        <textarea
+      <div className="space-y-2">
+        <Label htmlFor="bio">Bio corta</Label>
+        <Textarea
+          id="bio"
           name="bio"
           rows={3}
-          className="w-full border rounded-md px-3 py-2"
+          required
           placeholder="Contá brevemente tu experiencia..."
         />
       </div>
 
-      <button
-        type="submit"
-        className="w-full bg-primary text-primary-foreground rounded-md py-2 font-medium"
-      >
+      <Button type="submit" className="w-full">
         Continuar →
-      </button>
+      </Button>
     </form>
   )
 }
 
-// El page wrappea el form en Suspense
 export default function CandidateOnboardingPage() {
   return (
     <div className="max-w-lg mx-auto py-16 px-4">
-      <h1 className="text-2xl font-bold mb-2">Completá tu perfil</h1>
-      <p className="text-muted-foreground mb-8">
-        Esto ayuda a la IA a encontrar los mejores matches para vos.
-      </p>
-
-      <Suspense fallback={<p className="text-muted-foreground">Cargando...</p>}>
-        <OnboardingForm />
-      </Suspense>
+      <Card className="border-border/60 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl">Complete your profile</CardTitle>
+          <CardDescription>
+            This helps the AI find the best matches for you.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Suspense
+            fallback={<p className="text-sm text-muted-foreground">Loading...</p>}
+          >
+            <OnboardingForm />
+          </Suspense>
+        </CardContent>
+      </Card>
     </div>
   )
 }

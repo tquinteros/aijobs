@@ -16,6 +16,27 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Loader2, UserRound, Building2 } from "lucide-react";
+import { loginAsDemo } from "@/lib/actions/auth";
+
+const DEMO_USERS = {
+  candidate: {
+    email: "demo-candidate@hirematch.com",
+    password: process.env.NEXT_PUBLIC_DEMO_CANDIDATE_PASSWORD!,
+    redirect: "/dashboard/candidate",
+    label: "Demo Candidate",
+    icon: UserRound,
+    description: "Full-stack Developer",
+  },
+  company: {
+    email: "demo-recruiter@hirematch.com",
+    password: process.env.NEXT_PUBLIC_DEMO_RECRUITER_PASSWORD!,
+    redirect: "/dashboard/company",
+    label: "Demo Recruiter",
+    icon: Building2,
+    description: "Hiring",
+  },
+}
 
 export function LoginForm({
   className,
@@ -25,6 +46,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState<"candidate" | "company" | null>(null);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -34,12 +56,8 @@ export function LoginForm({
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/");
       router.refresh();
       toast.success("Login successful");
@@ -50,6 +68,20 @@ export function LoginForm({
     }
   };
 
+  const handleDemoLogin = async (role: "candidate" | "company") => {
+    setDemoLoading(role)
+    setError(null)
+    try {
+      await loginAsDemo(role)
+    } catch (err) {
+      if (err instanceof Error && err.message === "NEXT_REDIRECT") return
+      setError("Demo login failed. Please try again.")
+      setDemoLoading(null)
+    }
+  }
+
+  const isAnyLoading = isLoading || demoLoading !== null;
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -59,9 +91,61 @@ export function LoginForm({
             Enter your email below to login to your account
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground text-center font-medium uppercase tracking-wide">
+              Try a demo account
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {(["candidate", "company"] as const).map((role) => {
+                const demo = DEMO_USERS[role]
+                const Icon = demo.icon
+                const isThis = demoLoading === role
+
+                return (
+                  <button
+                    key={role}
+                    onClick={() => handleDemoLogin(role)}
+                    disabled={isAnyLoading}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all text-left",
+                      "hover:border-primary hover:bg-primary/5",
+                      "disabled:opacity-50 disabled:cursor-not-allowed",
+                      isThis ? "border-primary bg-primary/5" : "border-muted"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 w-full">
+                      {isThis ? (
+                        <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0" />
+                      ) : (
+                        <Icon className="h-4 w-4 text-primary shrink-0" />
+                      )}
+                      <span className="text-sm font-semibold">{demo.label}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground w-full">
+                      {demo.description}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                Or continue with email
+              </span>
+            </div>
+          </div>
+
+          {/* Email form */}
           <form onSubmit={handleLogin}>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -71,6 +155,7 @@ export function LoginForm({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isAnyLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -89,19 +174,21 @@ export function LoginForm({
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isAnyLoading}
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+              <Button type="submit" className="w-full" disabled={isAnyLoading}>
+                {isLoading ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Logging in...</>
+                ) : (
+                  "Login"
+                )}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
-              >
+              <Link href="/auth/sign-up" className="underline underline-offset-4">
                 Sign up
               </Link>
             </div>

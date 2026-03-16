@@ -43,7 +43,7 @@ export function HeroSearchForm() {
           aria-label="Search jobs"
         />
       </div>
-      <Select value={locationType || "all"} onValueChange={(v) => setLocationType(v === "all" ? "" : v)}>
+      {/* <Select value={locationType || "all"} onValueChange={(v) => setLocationType(v === "all" ? "" : v)}>
         <SelectTrigger className="!h-11 min-w-[140px]" aria-label="Location type">
           <SelectValue placeholder="Location" />
         </SelectTrigger>
@@ -53,7 +53,7 @@ export function HeroSearchForm() {
           <SelectItem value="hybrid">Hybrid</SelectItem>
           <SelectItem value="onsite">Onsite</SelectItem>
         </SelectContent>
-      </Select>
+      </Select> */}
       <Button type="submit" size="lg" className="!h-11 px-6 shrink-0">
         <Search className="w-4 h-4 sm:mr-2" />
         <span className="hidden sm:inline">Search</span>
