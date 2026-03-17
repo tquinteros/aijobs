@@ -1,10 +1,12 @@
 // components/dashboard/company/jobs-list.tsx
 "use client"
 
+import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { getJobPostings, updateJobStatus } from "@/lib/actions/company"
 import { JOB_POSTINGS_QUERY_KEY, type JobPosting } from "@/lib/company"
 import { CreateJobDialog } from "@/components/dashboard/company/create-job-dialog"
+import { EditJobDialog } from "@/components/dashboard/company/edit-job-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -23,8 +25,13 @@ import {
   AlertCircle,
   Inbox,
   Users,
+  Pencil,
+  Play,
+  Pause,
+  XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 const statusConfig: Record<JobPosting["status"], { label: string; variant: "default" | "secondary" | "destructive" }> = {
   active: { label: "Active", variant: "default" },
@@ -48,6 +55,7 @@ const seniorityLabel: Record<string, string> = {
 function JobCard({ job }: { job: JobPosting }) {
   const queryClient = useQueryClient()
   const router = useRouter()
+  const [editOpen, setEditOpen] = useState(false)
 
   const { mutate: changeStatus, isPending } = useMutation({
     mutationFn: ({ id, status }: { id: string; status: JobPosting["status"] }) =>
@@ -66,14 +74,11 @@ function JobCard({ job }: { job: JobPosting }) {
       : null
 
   return (
-    <Card
-      className="cursor-pointer"
-      onClick={() => router.push(`/dashboard/company/jobs/${job.id}`)}
-    >
+    <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="font-semibold text-base leading-tight">{job.title}</h3>
+            <Link href={`/dashboard/company/jobs/${job.id}`} className="font-semibold text-base leading-tight hover:underline">{job.title}</Link>
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
               <Badge variant={status.variant} className="text-xs">
                 {status.label}
@@ -101,41 +106,34 @@ function JobCard({ job }: { job: JobPosting }) {
                 size="icon"
                 className="shrink-0 h-8 w-8"
                 disabled={isPending}
-                onClick={(e) => e.stopPropagation()}
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
               {job.status !== "active" && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    changeStatus({ id: job.id, status: "active" })
-                  }}
-                >
+                <DropdownMenuItem onClick={() => changeStatus({ id: job.id, status: "active" })}>
+                  <Play className="h-4 w-4 mr-2" />
                   Activate
                 </DropdownMenuItem>
               )}
               {job.status !== "paused" && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    changeStatus({ id: job.id, status: "paused" })
-                  }}
-                >
-                  Pause
+                <DropdownMenuItem onClick={() => changeStatus({ id: job.id, status: "paused" })}>
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pause job
                 </DropdownMenuItem>
               )}
               {job.status !== "closed" && (
                 <DropdownMenuItem
                   className="text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    changeStatus({ id: job.id, status: "closed" })
-                  }}
+                  onClick={() => changeStatus({ id: job.id, status: "closed" })}
                 >
-                  Close job posting
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Close job
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -183,12 +181,17 @@ function JobCard({ job }: { job: JobPosting }) {
               year: "numeric",
             })}
           </p>
-          <span className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground transition-colors">
+          <button
+            className="text-xs text-muted-foreground flex items-center gap-1 hover:text-foreground transition-colors"
+            onClick={() => router.push(`/dashboard/company/jobs/${job.id}`)}
+          >
             <Users className="h-3.5 w-3.5" />
             View applications
-          </span>
+          </button>
         </div>
       </CardContent>
+
+      <EditJobDialog job={job} open={editOpen} onOpenChange={setEditOpen} />
     </Card>
   )
 }

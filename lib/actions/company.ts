@@ -197,6 +197,72 @@ export async function createJobPosting(formData: FormData): Promise<void> {
   revalidatePath("/dashboard/company")
 }
 
+export async function updateJobPosting(jobId: string, formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.getClaims()
+  if (error || !data?.claims) redirect("/auth/login")
+
+  const toSkillsArray = (val: string | null): string[] =>
+    val ? val.split(",").map((s) => s.trim()).filter(Boolean) : []
+
+  const salaryMin = formData.get("salary_min") as string
+  const salaryMax = formData.get("salary_max") as string
+  const yearsRequired = formData.get("years_required") as string
+
+  const jobData = {
+    title: formData.get("title") as string,
+    description: formData.get("description") as string,
+    location_type: (formData.get("location_type") as string) || null,
+    location: (formData.get("location") as string) || null,
+    salary_min: salaryMin ? parseInt(salaryMin) : null,
+    salary_max: salaryMax ? parseInt(salaryMax) : null,
+    currency: (formData.get("currency") as string) || "USD",
+    seniority_required: (formData.get("seniority_required") as string) || null,
+    years_required: yearsRequired ? parseInt(yearsRequired) : null,
+    required_skills: toSkillsArray(formData.get("required_skills") as string),
+    nice_to_have_skills: toSkillsArray(formData.get("nice_to_have_skills") as string),
+    updated_at: new Date().toISOString(),
+  }
+
+  const { error: updateError } = await supabase
+    .from("job_postings")
+    .update(jobData)
+    .eq("id", jobId)
+    .eq("company_id", data.claims.sub)
+
+  if (updateError) throw new Error(updateError.message)
+
+  const jobText = buildJobText({
+    title: jobData.title,
+    description: jobData.description,
+    required_skills: jobData.required_skills,
+    nice_to_have_skills: jobData.nice_to_have_skills,
+    seniority_required: jobData.seniority_required as string,
+    years_required: jobData.years_required as number,
+  })
+  const embedding = await generateEmbedding(jobText)
+
+  const { error: embeddingError } = await supabase
+    .from("job_postings")
+    .update({ embedding })
+    .eq("id", jobId)
+
+  if (embeddingError) throw new Error(`Error saving embedding: ${embeddingError.message}`)
+
+  try {
+    const keys = await redis.keys("jobs:vector:*")
+    if (keys.length > 0) {
+      await redis.del(...keys)
+    }
+    console.log("[jobs] Cache invalidated after job update:", keys.length, "keys deleted")
+  } catch (e) {
+    console.error("[jobs] Error invalidating cache:", e)
+  }
+
+  revalidatePath("/jobs")
+  revalidatePath("/dashboard/company")
+}
+
 export async function updateJobStatus(
   jobId: string,
   status: JobPosting["status"]
