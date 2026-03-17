@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, UserRound, Building2 } from "lucide-react";
 import { loginAsDemo } from "@/lib/actions/auth";
@@ -48,6 +49,7 @@ export function LoginForm({
   const [isLoading, setIsLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState<"candidate" | "company" | null>(null);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +60,7 @@ export function LoginForm({
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      queryClient.clear();
       router.push("/");
       router.refresh();
       toast.success("Login successful");

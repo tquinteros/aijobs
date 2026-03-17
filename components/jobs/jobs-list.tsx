@@ -164,7 +164,6 @@ export function JobsList({ initialData }: { initialData?: GetPublicJobsResult | 
     () => parseFiltersFromParams(searchParams),
     [searchParams]
   )
-
   const { data, isLoading, isError } = useQuery({
     queryKey: [...PUBLIC_JOBS_QUERY_KEY, filters],
     queryFn: () => getPublicJobs(filters),

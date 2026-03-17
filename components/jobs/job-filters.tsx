@@ -65,7 +65,11 @@ export function JobsFilters({ filters, totalJobs, filteredCount }: Props) {
     [updateParam]
   )
 
-  const hasActiveFilters = filters.location_type || filters.seniority || filters.search
+  const hasActiveFilters =
+    filters.location_type ||
+    filters.seniority ||
+    filters.search ||
+    filters.similarity_score_min
 
   const clearFilters = () => {
     router.replace(pathname, { scroll: false })
@@ -115,6 +119,23 @@ export function JobsFilters({ filters, totalJobs, filteredCount }: Props) {
             <SelectItem value="mid">Mid</SelectItem>
             <SelectItem value="senior">Senior</SelectItem>
             <SelectItem value="lead">Lead</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Similarity score */}
+        <Select
+          value={filters.similarity_score_min || "all"}
+          onValueChange={(v) => updateParam("similarity_score_min", v === "all" ? "" : v)}
+        >
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Match score" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All scores</SelectItem>
+            <SelectItem value="80">80+ (Strong)</SelectItem>
+            <SelectItem value="65">65+ (Very good)</SelectItem>
+            <SelectItem value="50">50+ (Good)</SelectItem>
+            <SelectItem value="30">30+ (Potential)</SelectItem>
           </SelectContent>
         </Select>
 
