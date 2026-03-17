@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { parseFiltersFromParams } from "@/lib/job-filters"
 import { useMemo } from "react"
 import { JobsFilters } from "./job-filters"
+import { ScoreBadge } from "./score-badge"
 
 const locationTypeLabel: Record<string, string> = {
   remote: "Remote",
@@ -25,22 +26,7 @@ const seniorityLabel: Record<string, string> = {
   lead: "Lead",
 }
 
-function ScoreBadge({ score }: { score: number }) {
-  const config =
-    score >= 70
-      ? { label: "Strong match", className: "bg-green-100 text-green-700 border-green-200" }
-      : score >= 50
-        ? { label: "Moderate match", className: "bg-yellow-100 text-yellow-700 border-yellow-200" }
-        : { label: "Low match", className: "bg-red-100 text-red-700 border-red-200" }
-
-  return (
-    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${config.className}`}>
-      {score}% · {config.label}
-    </span>
-  )
-}
-
-function JobCard({ job }: { job: PublicJobListing }) {
+export function JobCard({ job }: { job: PublicJobListing }) {
   const companyName = job.company_profiles?.company_name ?? "Company"
   const router = useRouter()
   const salaryText =

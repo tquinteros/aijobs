@@ -1,10 +1,15 @@
 // lib/ai/embeddings.ts
 import OpenAI from "openai"
 
-const openai = new OpenAI()
+let openai: OpenAI | null = null
+
+function getOpenAIClient() {
+  if (!openai) openai = new OpenAI()
+  return openai
+}
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const response = await openai.embeddings.create({
+  const response = await getOpenAIClient().embeddings.create({
     model: "text-embedding-3-small",
     input: text,
   })
