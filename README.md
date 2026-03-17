@@ -161,18 +161,6 @@ messages              -- conversation_id, sender_role, content, read_at
 
 ---
 
-## Environment Variables
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-OPENAI_API_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-NEXT_PUBLIC_APP_URL=
-```
-
 ## Roadmap
 
 - [ ] Edit job posting (regenerates embedding)
