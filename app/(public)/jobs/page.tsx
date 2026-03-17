@@ -20,7 +20,7 @@ export default async function JobsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 px-4 lg:px-0">
       <Suspense fallback={<JobsListSkeleton />}>
         <JobsContent searchParams={searchParams} />
       </Suspense>

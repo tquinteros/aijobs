@@ -62,7 +62,7 @@ export default function JobIdPage({
   params: Promise<{ id: string }>
 }) {
   return (
-    < div className="container mx-auto py-8" >
+    < div className="container mx-auto py-8 px-4 lg:px-0" >
       <Suspense fallback={<JobDetailsSkeleton />}>
         <JobDetailsContent paramsPromise={params} />
       </Suspense>

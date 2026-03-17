@@ -100,7 +100,6 @@ export async function getPublicJobs(filters?: JobFilters | null): Promise<GetPub
             .from("job_postings")
             .select("id, company_profiles(company_name, industry, location)")
             .in("id", jobIds)
-
           const companyMap = Object.fromEntries(
             (jobsWithCompany as unknown as JobWithCompany[] ?? []).map((c) => [
               c.id,

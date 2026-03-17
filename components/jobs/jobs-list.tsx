@@ -147,10 +147,11 @@ export function JobsListSkeleton() {
           <Skeleton className="h-10 w-[130px] rounded-md" />
         </div>
         <Skeleton className="h-4 w-40 mt-3 rounded-md" />
+        <Skeleton className="h-4 w-40 mt-3 rounded-md" />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(8)].map((_, i) => (
-          <Skeleton key={i} className="h-44 w-full rounded-lg" />
+          <Skeleton key={i} className="h-72 w-full rounded-lg" />
         ))}
       </div>
     </div>
@@ -176,7 +177,7 @@ export function JobsList({ initialData }: { initialData?: GetPublicJobsResult | 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Job searches</h1>
+        <h1 className="text-2xl font-bold mb-2">Job searches</h1>
         <JobsFilters
           filters={filters}
           totalJobs={total}

@@ -284,6 +284,29 @@ export default function ConversationChat({
     }
   }
 
+  function renderMessageContent(text: string) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const parts = text.split(urlRegex)
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="underline break-words"
+          >
+            {part}
+          </a>
+        )
+      }
+
+      return <span key={index}>{part}</span>
+    })
+  }
+
   const company = conv?.company_profiles?.company_name ?? "Company"
   const job = conv?.job_postings?.title ?? "Job"
 
@@ -355,7 +378,7 @@ export default function ConversationChat({
                     isOptimistic && "opacity-60"
                   )}
                 >
-                  {msg.content}
+                  {renderMessageContent(msg.content)}
                 </div>
                 <span className="text-[10px] text-muted-foreground px-1">{time}</span>
               </div>

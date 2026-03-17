@@ -4,8 +4,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-export function LogoutButton() {
+export function LogoutButton({ size = "default", className = "" }: { size?: "default" | "sm" | "lg" | "icon", className?: string }) {
   const router = useRouter();
 
   const logout = async () => {
@@ -16,5 +17,5 @@ export function LogoutButton() {
     toast.success("Logout successful");
   };
 
-  return <Button className="w-full" onClick={logout}>Logout</Button>;
+  return <Button size={size} className={cn("w-full", className)} onClick={logout}>Logout</Button>;
 }

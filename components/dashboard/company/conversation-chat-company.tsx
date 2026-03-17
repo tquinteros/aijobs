@@ -268,6 +268,29 @@ export default function ConversationChatCompany({
     }
   }
 
+  function renderMessageContent(text: string) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const parts = text.split(urlRegex)
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="underline break-words"
+          >
+            {part}
+          </a>
+        )
+      }
+
+      return <span key={index}>{part}</span>
+    })
+  }
+
   const candidateName = conv?.candidate_profiles?.full_name ?? "Candidate"
 
   return (
@@ -336,7 +359,7 @@ export default function ConversationChatCompany({
                     isOptimistic && "opacity-60"
                   )}
                 >
-                  {msg.content}
+                  {renderMessageContent(msg.content)}
                 </div>
                 <span className="text-[10px] text-muted-foreground px-1">{time}</span>
               </div>
