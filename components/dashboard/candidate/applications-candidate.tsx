@@ -81,10 +81,10 @@ export default function ApplicationsCandidate({ initialApplications }: { initial
   if (data.length === 0) {
     return (
       <div className="text-sm text-muted-foreground">
-          You have not applied to any jobs yet. Explore the opportunities in the tab{" "}
-        <Link href="/dashboard/candidate/jobs" className="text-primary underline-offset-2 hover:underline">
+          You have not applied to any jobs yet. Explore the opportunities in the{" "}
+        <Link href="/jobs" className="text-primary underline-offset-2 hover:underline">
           Jobs
-        </Link>.
+        </Link> page.
       </div>
     )
   }
