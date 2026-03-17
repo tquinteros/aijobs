@@ -20,7 +20,7 @@ import Image from "next/image"
 const navItems = [
   { href: "/dashboard/company", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/company/jobs", label: "Job Postings", icon: Briefcase },
-  { href: "/dashboard/company/candidates", label: "Candidates", icon: Users },
+  // { href: "/dashboard/company/candidates", label: "Candidates", icon: Users },
   { href: "/dashboard/company/messages", label: "Messages", icon: MessageCircle },
 ]
 

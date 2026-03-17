@@ -133,7 +133,7 @@ export default function CvProfile({ initialProfile }: { initialProfile: Candidat
       <div className="mb-6 space-y-2">
         <h1 className="text-2xl font-bold">Update your CV</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Upload a new version of your CV for the AI to analyze it again and update your embeddings.
+          Upload a new version of your CV for the AI to analyze it again and update your embeddings (you can only upload a new CV once every 24 hours).
         </p>
         <p className="text-xs text-muted-foreground">
           This will replace the previous CV and update your profile automatically.
