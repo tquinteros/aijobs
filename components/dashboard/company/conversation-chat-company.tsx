@@ -55,6 +55,9 @@ export default function ConversationChatCompany({
       return firstPage.messages[0]?.created_at ?? undefined
     },
     initialPageParam: undefined as string | undefined,
+    refetchOnMount: 'always',
+    initialDataUpdatedAt: 0,
+    refetchOnWindowFocus: false,
     initialData: {
       pages: [{ messages: initialMessages, hasMore: initialHasMore }],
       pageParams: [undefined],

@@ -24,6 +24,7 @@ export default function MessageListCompany({ initialConversations }: Props) {
     queryFn: getCompanyConversations,
     initialData: initialConversations,
     refetchInterval: 30_000,
+    refetchOnMount: 'always',
   })
 
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null)

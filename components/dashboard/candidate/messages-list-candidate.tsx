@@ -35,6 +35,7 @@ export default function MessageListCandidate({ initialConversations }: { initial
     queryKey: CONVERSATIONS_QUERY_KEY,
     queryFn: getCandidateConversations,
     refetchInterval: 30_000,
+    refetchOnMount: 'always',
     initialData: initialConversations,
   })
 

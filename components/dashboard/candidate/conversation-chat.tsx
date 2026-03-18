@@ -60,6 +60,9 @@ export default function ConversationChat({
       return firstPage.messages[0]?.created_at ?? undefined
     },
     initialPageParam: undefined as string | undefined,
+    initialDataUpdatedAt: 0,
+    refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
     // Inyectar la primera página desde el servidor
     initialData: {
       pages: [{ messages: initialMessages, hasMore: initialHasMore }],
