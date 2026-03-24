@@ -12,6 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
+import { IndustryMultiSelect } from "@/components/onboarding/industry-multi-select"
 
 async function CompanyOnboardingForm() {
   const supabase = await createClient()
@@ -38,7 +40,7 @@ async function CompanyOnboardingForm() {
   return (
     <form action={createCompanyProfile} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="company_name">Nombre de la empresa</Label>
+        <Label htmlFor="company_name">Name of the company</Label>
         <Input
           id="company_name"
           name="company_name"
@@ -47,23 +49,19 @@ async function CompanyOnboardingForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="industry">Industria</Label>
-        <Input
-          id="industry"
-          name="industry"
-          placeholder="Tecnología, Retail, Salud..."
-        />
+        <Label htmlFor="industry">Industry</Label>
+        <IndustryMultiSelect />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="location">Ubicación</Label>
+        <Label htmlFor="location">Location</Label>
         <Input
           id="location"
           name="location"
-          placeholder="Buenos Aires, Argentina"
+            placeholder="New York, USA"
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="website">Sitio web</Label>
+        <Label htmlFor="website">Website</Label>
         <Input
           id="website"
           name="website"
@@ -72,17 +70,16 @@ async function CompanyOnboardingForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="description">Descripción de la empresa</Label>
-        <textarea
+        <Label htmlFor="description">Description of the company</Label>
+        <Textarea
           id="description"
           name="description"
           rows={4}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          placeholder="Contá brevemente qué hace la empresa y qué tipo de talento buscan..."
+          placeholder="Briefly describe what the company does and what type of talent they are looking for..."
         />
       </div>
       <Button type="submit" className="w-full">
-        Completar perfil →
+        Complete profile →
       </Button>
     </form>
   )
@@ -93,13 +90,13 @@ export default function CompanyOnboardingPage() {
     <div className="max-w-lg mx-auto py-16 px-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Completá el perfil de tu empresa</CardTitle>
+          <CardTitle className="text-2xl">Complete the profile of your company</CardTitle>
           <CardDescription>
-            Esta información ayuda a conectar tu empresa con los candidatos adecuados.
+            This information helps connect your company with the appropriate candidates.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<p className="text-muted-foreground">Cargando...</p>}>
+          <Suspense fallback={<p className="text-muted-foreground">Loading...</p>}>
             <CompanyOnboardingForm />
           </Suspense>
         </CardContent>
