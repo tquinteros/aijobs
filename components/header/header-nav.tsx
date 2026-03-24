@@ -30,9 +30,9 @@ export async function HeaderNav() {
           <Link href="/jobs" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             Jobs
           </Link>
-          <Link href="/about" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          {/* <Link href="/about" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             About
-          </Link>
+          </Link> */}
           <Link href="/contact" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             Contact
           </Link>
@@ -109,12 +109,12 @@ export async function HeaderNav() {
                   >
                     Jobs
                   </Link>
-                  <Link
+                  {/* <Link
                     href="/about"
                     className="text-sm font-medium text-foreground"
                   >
                     About
-                  </Link>
+                  </Link> */}
                   <Link
                     href="/contact"
                     className="text-sm font-medium text-foreground"
