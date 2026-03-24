@@ -36,6 +36,9 @@ export async function HeaderNav() {
           <Link href="/contact" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             Contact
           </Link>
+          <Link href="/faq" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            FAQ
+          </Link>
         </div>
       </div>
 
@@ -117,6 +120,12 @@ export async function HeaderNav() {
                     className="text-sm font-medium text-foreground"
                   >
                     Contact
+                  </Link>
+                  <Link
+                    href="/faq"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    FAQ
                   </Link>
                 </nav>
 

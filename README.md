@@ -163,10 +163,11 @@ messages              -- conversation_id, sender_role, content, read_at
 
 ## Roadmap
 
-- [ ] Edit job posting (regenerates embedding)
-- [ ] Edit company profile
-- [ ] Unread message notifications in nav
+- [X] Edit job posting (regenerates embedding)
+- [X] Edit company profile
+- [X] Unread message notifications in nav
 - [ ] Email notifications via Resend
 - [ ] Landing page
 - [ ] Semantic free-text search in /jobs
 - [ ] Company analytics dashboard (views, conversion rate per job)
+- [X] Combobox for industry selection

@@ -30,6 +30,7 @@ export async function createCompanyProfile(formData: FormData) {
     location: formData.get("location") as string,
     description: formData.get("description") as string,
     website: (formData.get("website") as string) || null,
+    logo_url: 'https://imgs.search.brave.com/jBrp9nUWuRSA19eHAWB8Aqe291Wi-QBNu4DPQKtICLE/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvNTAwcC80/Ny8xNS9tb2Rlcm4t/Z2xvYmUtaWNvbnMt/bG9nb3MtdmVjdG9y/LTM1ODQ3MTUuanBn',
   })
 
   if (insertError) throw new Error(insertError.message)
