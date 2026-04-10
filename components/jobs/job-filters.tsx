@@ -31,12 +31,10 @@ export function JobsFilters({ filters, totalJobs, filteredCount }: Props) {
   const [searchInput, setSearchInput] = useState(filters.search)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Sync input from URL when filters.search changes (e.g. Clear or navigation)
   useEffect(() => {
     setSearchInput(filters.search)
   }, [filters.search])
 
-  // Clear debounce timer on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)

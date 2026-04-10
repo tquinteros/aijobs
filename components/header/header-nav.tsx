@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Menu } from "lucide-react"
 
-import { getCurrentUser } from "@/lib/auth/get-current-user"
+import type { CurrentUser } from "@/lib/auth/get-current-user"
 import { ThemeSwitcher } from "../theme-switcher"
 import { Button } from "../ui/button"
 import {
@@ -13,9 +13,11 @@ import {
 } from "../ui/sheet"
 import { LogoutButton } from "../logout-button"
 
-export async function HeaderNav() {
-  const user = await getCurrentUser()
+type Props = {
+  user: CurrentUser
+}
 
+export function HeaderNav({ user }: Props) {
   return (
     <nav className="flex w-full items-center justify-between gap-6">
       <div className="flex items-center gap-8">
@@ -27,16 +29,25 @@ export async function HeaderNav() {
         </Link>
 
         <div className="hidden items-center gap-6 sm:flex">
-          <Link href="/jobs" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Link
+            href="/jobs"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
             Jobs
           </Link>
           {/* <Link href="/about" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
             About
           </Link> */}
-          <Link href="/contact" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Link
+            href="/contact"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
             Contact
           </Link>
-          <Link href="/faq" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <Link
+            href="/faq"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
             FAQ
           </Link>
         </div>
@@ -136,14 +147,14 @@ export async function HeaderNav() {
                     <>
                       <Link
                         href="/auth/login"
-                        className="rounded-md border px-4 py-2 text-sm font-medium text-foreground text-center"
+                        className="rounded-md border px-4 py-2 text-center text-sm font-medium text-foreground"
                       >
                         Sign in
                       </Link>
 
                       <Link
                         href="/auth/sign-up"
-                        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground text-center"
+                        className="rounded-md bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground"
                       >
                         Sign up
                       </Link>
@@ -175,9 +186,7 @@ export async function HeaderNav() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs text-muted-foreground">
-                    Theme
-                  </span>
+                  <span className="text-xs text-muted-foreground">Theme</span>
                   <ThemeSwitcher />
                 </div>
               </div>
