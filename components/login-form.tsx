@@ -14,11 +14,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, UserRound, Building2 } from "lucide-react";
 import { loginAsDemo } from "@/lib/actions/auth";
+
+function isServerActionRedirect(error: unknown): boolean {
+  if (error instanceof Error && error.message === "NEXT_REDIRECT") return true
+  if (typeof error !== "object" || error === null) return false
+  const digest = (error as { digest?: unknown }).digest
+  return typeof digest === "string" && digest.includes("NEXT_REDIRECT")
+}
 
 const DEMO_USERS = {
   candidate: {
@@ -51,6 +58,17 @@ export function LoginForm({
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        setDemoLoading(null)
+        setIsLoading(false)
+      }
+    }
+    window.addEventListener("pageshow", onPageShow)
+    return () => window.removeEventListener("pageshow", onPageShow)
+  }, [])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const supabase = createClient();
@@ -78,8 +96,9 @@ export function LoginForm({
       queryClient.clear()
       await loginAsDemo(role)
     } catch (err) {
-      if (err instanceof Error && err.message === "NEXT_REDIRECT") return
+      if (isServerActionRedirect(err)) return
       setError("Demo login failed. Please try again.")
+    } finally {
       setDemoLoading(null)
     }
   }

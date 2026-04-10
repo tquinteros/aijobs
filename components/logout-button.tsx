@@ -15,13 +15,16 @@ export function LogoutButton({ size = "default", className = "" }: { size?: "def
   const [disabled, setDisabled] = useState(false);
   const logout = async () => {
     setDisabled(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    queryClient.clear();
-    router.refresh();
-    toast.success("Logout successful");
-    setDisabled(false);
-    };
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      queryClient.clear();
+      router.refresh();
+      toast.success("Logout successful");
+    } finally {
+      setDisabled(false);
+    }
+  };
 
   return <Button size={size} className={cn("w-full", className)} onClick={logout} disabled={disabled}>
     {disabled ? <Loader2 className="w-4 h-4 animate-spin" /> : "Logout"}
