@@ -3,6 +3,7 @@ import { getPublicJobs } from "@/lib/actions/job"
 import { parseFiltersFromSearchParams } from "@/lib/job-filters"
 import { Suspense } from "react"
 
+
 async function JobsContent({
   searchParams,
 }: {

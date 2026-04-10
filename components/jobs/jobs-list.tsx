@@ -3,13 +3,14 @@
 import { useQuery } from "@tanstack/react-query"
 import { getPublicJobs, type GetPublicJobsResult } from "@/lib/actions/job"
 import { PUBLIC_JOBS_QUERY_KEY, type PublicJobListing } from "@/lib/company"
+import { createClient } from "@/lib/supabase/client"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MapPin, Clock, DollarSign, Building2, AlertCircle } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { parseFiltersFromParams } from "@/lib/job-filters"
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { JobsFilters } from "./job-filters"
 
 const locationTypeLabel: Record<string, string> = {
@@ -164,14 +165,40 @@ export function JobsList({ initialData }: { initialData?: GetPublicJobsResult | 
     () => parseFiltersFromParams(searchParams),
     [searchParams]
   )
-  const { data, isLoading, isError } = useQuery({
-    queryKey: [...PUBLIC_JOBS_QUERY_KEY, filters],
+
+  const [viewerKey, setViewerKey] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const applySession = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setViewerKey(session?.user?.id ?? "guest")
+      })
+    }
+    applySession()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setViewerKey(session?.user?.id ?? "guest")
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const { data, isPending, isError } = useQuery({
+    queryKey: [...PUBLIC_JOBS_QUERY_KEY, filters, viewerKey ?? "pending"],
     queryFn: () => getPublicJobs(filters),
+    enabled: viewerKey !== null,
     initialData: initialData ?? undefined,
+    staleTime: 0,
+    refetchOnMount: "always",
   })
 
-  const jobs = data?.jobs ?? []
-  const total = data?.total ?? 0
+  const resolved = data ?? initialData ?? null
+  const jobs = resolved?.jobs ?? []
+  const total = resolved?.total ?? 0
+  const showSkeleton =
+    resolved == null &&
+    (viewerKey === null ? initialData == null : isPending)
 
   return (
     <div className="space-y-6">
@@ -184,13 +211,13 @@ export function JobsList({ initialData }: { initialData?: GetPublicJobsResult | 
         />
 
         <p className="text-muted-foreground mt-1">
-          {!isLoading && data != null
+          {resolved != null
             ? `${total} job search${total !== 1 ? "s" : ""} active${total !== 1 ? "s" : ""}`
             : "Loading..."}
         </p>
       </div>
 
-      {isLoading && <JobsListSkeleton />}
+      {showSkeleton && <JobsListSkeleton />}
 
       {isError && (
         <div className="flex items-center gap-2 text-destructive p-4 rounded-lg border border-destructive/30 bg-destructive/10">
@@ -199,19 +226,19 @@ export function JobsList({ initialData }: { initialData?: GetPublicJobsResult | 
         </div>
       )}
 
-      {!isLoading && !isError && total === 0 && (
+      {!showSkeleton && !isError && total === 0 && (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <p className="text-muted-foreground">No job searches published yet.</p>
         </div>
       )}
 
-      {!isLoading && !isError && total > 0 && jobs.length === 0 && (
+      {!showSkeleton && !isError && total > 0 && jobs.length === 0 && (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <p className="text-muted-foreground">No jobs match your filters. Try adjusting or clearing them.</p>
         </div>
       )}
 
-      {!isLoading && !isError && jobs.length > 0 && (
+      {!showSkeleton && !isError && jobs.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {jobs.map((job) => (
             <JobCard key={job.id} job={job} />

@@ -75,6 +75,7 @@ export function LoginForm({
     setDemoLoading(role)
     setError(null)
     try {
+      queryClient.clear()
       await loginAsDemo(role)
     } catch (err) {
       if (err instanceof Error && err.message === "NEXT_REDIRECT") return

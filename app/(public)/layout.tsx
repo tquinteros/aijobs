@@ -1,16 +1,22 @@
+import { Suspense } from "react"
 import { Header } from "@/components/header/header"
 import { getCurrentUser } from "@/lib/auth/get-current-user"
 
-export default async function PublicLayout({
+async function HeaderWithUser() {
+  const user = await getCurrentUser()
+  return <Header user={user} />
+}
+
+export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const user = await getCurrentUser()
-
   return (
     <>
-      <Header user={user} />
+      <Suspense fallback={<Header user={null} />}>
+        <HeaderWithUser />
+      </Suspense>
       {children}
     </>
   )
