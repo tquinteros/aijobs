@@ -25,7 +25,7 @@ export function HeaderNav({ user }: Props) {
           href="/"
           className="text-lg font-semibold tracking-tight text-foreground hover:opacity-90"
         >
-          aijobs
+          aicruiter
         </Link>
 
         <div className="hidden items-center gap-6 sm:flex">

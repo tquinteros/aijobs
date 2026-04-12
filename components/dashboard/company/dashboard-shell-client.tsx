@@ -43,7 +43,7 @@ export function CompanyDashboardShellClient({
           </DrawerContent>
         </Drawer>
         <div className="ml-1">
-          <p className="text-sm font-semibold leading-tight">aijobs</p>
+          <p className="text-sm font-semibold leading-tight">aicruiter</p>
           <p className="text-xs text-muted-foreground leading-tight">Empresa</p>
         </div>
       </header>

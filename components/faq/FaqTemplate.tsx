@@ -17,10 +17,10 @@ export default function FaqTemplate() {
           Frequently Asked Questions
         </Badge>
         <div className="space-y-2">
-          <CardTitle className="text-3xl">How AIJobs Works</CardTitle>
+          <CardTitle className="text-3xl">How AICruiter Works</CardTitle>
           <CardDescription className="max-w-2xl text-base">
             Everything you need to know about onboarding, AI matching, job
-            applications, company workflows, and messaging inside AIJobs.
+            applications, company workflows, and messaging inside AICruiter.
           </CardDescription>
         </div>
       </CardHeader>

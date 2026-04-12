@@ -60,7 +60,7 @@ export default function ContactForm() {
         <div className="space-y-2">
           <CardTitle className="text-3xl">Get in touch</CardTitle>
           <CardDescription className="text-base">
-            Have questions about AIJobs? Send us a message and we will get back
+            Have questions about AICruiter? Send us a message and we will get back
             to you as soon as possible.
           </CardDescription>
         </div>

@@ -1,4 +1,4 @@
-# AIJobs — AI-Powered Job Board
+# AICruiter — AI-Powered Job Board
 
 ---
 

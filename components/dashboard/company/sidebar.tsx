@@ -50,7 +50,7 @@ export function CompanySidebar({ companyName, logoUrl, className }: SidebarProps
   return (
     <aside className={cn("flex flex-col w-64 min-h-screen border-r bg-card px-3 py-5 shrink-0", className)}>
       <div className="px-3 mb-6">
-        <Link href="/" className="text-lg font-bold tracking-tight">aijobs</Link>
+        <Link href="/" className="text-lg font-bold tracking-tight">aicruiter</Link>
         <span className="text-muted-foreground text-sm block">Empresa</span>
       </div>
 

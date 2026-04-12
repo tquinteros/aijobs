@@ -6,9 +6,9 @@ import {
 
 const FAQS = [
   {
-    question: "What is AIJobs and who is it for?",
+    question: "What is AICruiter and who is it for?",
     answer:
-      "AIJobs is a job platform that uses AI matching between candidates and companies. Candidates get ranked opportunities based on profile compatibility, while companies get better-qualified applicants and deeper AI analysis tools.",
+      "AICruiter is a job platform that uses AI matching between candidates and companies. Candidates get ranked opportunities based on profile compatibility, while companies get better-qualified applicants and deeper AI analysis tools.",
   },
   {
     question: "How does matching work in simple terms?",
@@ -46,7 +46,7 @@ const FAQS = [
       "When a conversation is started, messages are delivered in real time through Supabase Realtime. The UI is optimized for fast feedback so both candidates and companies can communicate without page refreshes.",
   },
   {
-    question: "What can companies do on AIJobs?",
+    question: "What can companies do on AICruiter?",
     answer:
       "Companies can complete onboarding, create and publish job posts, review applicants, calculate compatibility for candidates, run AI analysis with strengths/gaps/recommendations, and start chat directly from applications.",
   },
